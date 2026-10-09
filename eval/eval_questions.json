@@ -1,0 +1,122 @@
+[
+  {
+    "id": "q01",
+    "question": "¿Quién propuso la arquitectura RAG y en qué año?",
+    "ground_truth": "Fue propuesta en 2020 por Patrick Lewis y colegas de Facebook AI Research.",
+    "answerable": true
+  },
+  {
+    "id": "q02",
+    "question": "¿Cuáles son las dos fases de un sistema RAG?",
+    "ground_truth": "La fase de indexación (leer documentos, dividirlos en chunks, convertirlos en vectores con un modelo de embeddings y guardarlos en una base vectorial) y la fase de consulta (vectorizar la pregunta, buscar los fragmentos más cercanos y enviarlos al LLM junto con la pregunta).",
+    "answerable": true
+  },
+  {
+    "id": "q03",
+    "question": "¿Qué ventajas tiene RAG frente al fine-tuning?",
+    "ground_truth": "Permite actualizar el conocimiento sin reentrenar, reduce las alucinaciones, permite citar la fuente de cada afirmación y mantiene el control de los datos porque solo se envían al LLM los fragmentos recuperados.",
+    "answerable": true
+  },
+  {
+    "id": "q04",
+    "question": "¿Cuál es la principal limitación de un sistema RAG?",
+    "ground_truth": "Un RAG es tan bueno como su recuperación: si el fragmento correcto no llega al LLM, la respuesta será incompleta o incorrecta. Además añade latencia y costo.",
+    "answerable": true
+  },
+  {
+    "id": "q05",
+    "question": "¿Cuáles son los parámetros principales del chunking?",
+    "ground_truth": "El tamaño del chunk, el solapamiento (overlap) y el criterio de corte.",
+    "answerable": true
+  },
+  {
+    "id": "q06",
+    "question": "¿Qué es el solapamiento en el chunking y qué porcentaje se suele usar?",
+    "ground_truth": "Es repetir el final de un chunk al inicio del siguiente para que una idea cortada en el límite no se pierda; normalmente entre el 10 % y el 20 % del tamaño del chunk.",
+    "answerable": true
+  },
+  {
+    "id": "q07",
+    "question": "¿Cómo funciona el criterio de corte recursivo?",
+    "ground_truth": "Intenta cortar primero por párrafos, luego por saltos de línea, después por frases y solo al final por caracteres.",
+    "answerable": true
+  },
+  {
+    "id": "q08",
+    "question": "¿Qué es un embedding y cómo se mide la cercanía entre dos textos?",
+    "ground_truth": "Es una representación numérica de un texto como vector; textos con significado parecido quedan cerca y la cercanía se mide con la similitud coseno.",
+    "answerable": true
+  },
+  {
+    "id": "q09",
+    "question": "¿Qué modelo de embeddings se recomienda para documentos en español y cuántas dimensiones tiene?",
+    "ground_truth": "paraphrase-multilingual-MiniLM-L12-v2 de sentence-transformers, que genera vectores de 384 dimensiones, funciona en más de 50 idiomas y se ejecuta localmente.",
+    "answerable": true
+  },
+  {
+    "id": "q10",
+    "question": "¿Qué es HNSW?",
+    "ground_truth": "Hierarchical Navigable Small World, un algoritmo de búsqueda aproximada de vecinos más cercanos (ANN) basado en grafos de varias capas.",
+    "answerable": true
+  },
+  {
+    "id": "q11",
+    "question": "¿Por qué Chroma es adecuada para proyectos académicos?",
+    "ground_truth": "Porque es de código abierto, puede funcionar de forma embebida y guarda el índice en disco con persistencia local, ideal para prototipos y proyectos académicos.",
+    "answerable": true
+  },
+  {
+    "id": "q12",
+    "question": "¿Qué es pgvector y cuándo conviene usarlo?",
+    "ground_truth": "Es una extensión de PostgreSQL que añade un tipo de dato vectorial; conviene cuando ya se usa PostgreSQL y se quiere unir datos relacionales y vectores.",
+    "answerable": true
+  },
+  {
+    "id": "q13",
+    "question": "¿Qué mide la métrica faithfulness en Ragas?",
+    "ground_truth": "Mide qué proporción de las afirmaciones de la respuesta está respaldada por los contextos recuperados; una puntuación baja indica alucinaciones y apunta a la etapa de generación.",
+    "answerable": true
+  },
+  {
+    "id": "q14",
+    "question": "¿Qué indica un context_recall bajo?",
+    "ground_truth": "Indica que falta información de la respuesta de referencia en los contextos recuperados, lo que suele deberse al chunking o a un top_k insuficiente.",
+    "answerable": true
+  },
+  {
+    "id": "q15",
+    "question": "¿Para qué sirven los delimitadores en el prompt de un RAG?",
+    "ground_truth": "Marcan dónde empieza y termina el texto recuperado, ayudan a que el modelo no confunda instrucciones con datos y reducen el riesgo de prompt injection.",
+    "answerable": true
+  },
+  {
+    "id": "q16",
+    "question": "¿Cómo se resuelven las preguntas de seguimiento en un RAG conversacional?",
+    "ground_truth": "Reescribiendo la pregunta como una pregunta independiente usando el historial del diálogo antes de buscar en la base vectorial.",
+    "answerable": true
+  },
+  {
+    "id": "q17",
+    "question": "¿Cuánto cuesta un millón de tokens de GPT-4o?",
+    "ground_truth": "La información no está en la base de conocimientos.",
+    "answerable": false
+  },
+  {
+    "id": "q18",
+    "question": "¿Quién ganó el Mundial de fútbol de 2018?",
+    "ground_truth": "La información no está en la base de conocimientos.",
+    "answerable": false
+  },
+  {
+    "id": "q19",
+    "question": "¿Cómo se entrena una red neuronal convolucional con PyTorch?",
+    "ground_truth": "La información no está en la base de conocimientos.",
+    "answerable": false
+  },
+  {
+    "id": "q20",
+    "question": "¿Qué dice la Ley 1581 de 2012 sobre protección de datos?",
+    "ground_truth": "La información no está en la base de conocimientos.",
+    "answerable": false
+  }
+]
