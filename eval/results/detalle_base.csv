@@ -1,0 +1,381 @@
+﻿id,answerable,user_input,reference,response,refused,retrieved_contexts,sources,seconds,faithfulness,answer_relevancy,context_precision,context_recall
+q01,True,¿Qué es BM25 y de qué método es sucesor?,BM25 (Best Matching 25) es considerado el estándar de la industria para la recuperación de información por palabras clave (keyword search) y es el sucesor directo de TF-IDF.,"BM25 (Best Matching 25) es el método estándar de la industria para recuperación de información mediante búsqueda por palabras clave. Es el sucesor directo del método TF‑IDF, mejorando este último al introducir saturación del término de frecuencia y normalización por longitud del documento【2】.",False,"MÉTODO BM25 -
+BEST MATCHING 25 ||| BM25
+Es considerado el estándar de la industria para la recuperación de información ( Keyword Search ) y es el 
+sucesor directo del TF -IDF.
+Ventajas  de  BM 25 sobre  TF -IDF.  Ambos  métodos  miden  la  importancia  de  las  palabras,  BM 25 corrige  
+dos  limitaciones  críticas  del  TF -IDF  tradicional :
+• Saturación  del  TF  (Term  Frequency ): En  TF -IDF,  si  una  palabra  aparece  100  veces,  tiene  10  veces  más  
+importancia  que  si  aparece  10  veces . BM 25 aplica  una  ""saturación"" : a partir  de  cierto  número  de  
+apariciones,  la  importancia  deja  de  crecer  linealmente . Si  ya  viste  la  palabra  10  veces,  verla  20 no  
+duplica  la  relevancia .
+• Normalización  por  Longitud  del  Documento : TF -IDF  suele  beneficiar  injustamente  a los  
+documentos  largos  (porque  tienen  más  palabras  y mayor  probabilidad  de  repetir  términos) . BM 25","['3 BM25_Score.pdf#0', '3 BM25_Score.pdf#1']",6.69,1.0,0.723914869079662,0.99999999995,1.0
+q02,True,¿Qué dos limitaciones de TF-IDF corrige BM25?,"La saturación del TF: en BM25, a partir de cierto número de apariciones la importancia de una palabra deja de crecer linealmente; y la normalización por longitud del documento: TF-IDF beneficia injustamente a los documentos largos, mientras BM25 los penaliza y premia a los documentos cortos que son relevantes.","- Saturación del TF (Term Frequency): BM25 limita el crecimiento lineal de la importancia de una palabra cuando su frecuencia supera cierto umbral【1】.  
+- Normalización por longitud del documento: BM25 corrige el sesgo de TF‑IDF que favorece indebidamente a documentos largos【1】.",False,"BM25
+Es considerado el estándar de la industria para la recuperación de información ( Keyword Search ) y es el 
+sucesor directo del TF -IDF.
+Ventajas  de  BM 25 sobre  TF -IDF.  Ambos  métodos  miden  la  importancia  de  las  palabras,  BM 25 corrige  
+dos  limitaciones  críticas  del  TF -IDF  tradicional :
+• Saturación  del  TF  (Term  Frequency ): En  TF -IDF,  si  una  palabra  aparece  100  veces,  tiene  10  veces  más  
+importancia  que  si  aparece  10  veces . BM 25 aplica  una  ""saturación"" : a partir  de  cierto  número  de  
+apariciones,  la  importancia  deja  de  crecer  linealmente . Si  ya  viste  la  palabra  10  veces,  verla  20 no  
+duplica  la  relevancia .
+• Normalización  por  Longitud  del  Documento : TF -IDF  suele  beneficiar  injustamente  a los  
+documentos  largos  (porque  tienen  más  palabras  y mayor  probabilidad  de  repetir  términos) . BM 25 ||| PUNTOS CLAVE DE LA AGENDA
+1. Enfoques  de búsqueda
+2. Conceptos  esenciales  del modelo  TF-IDF
+3. Aplicación  del mecanismo  TF-IDF
+4. Código de ejemplo","['3 BM25_Score.pdf#1', 'TF-IDF_Keyword_search.pdf#1']",0.62,1.0,0.47676797383883546,0.9999999999,1.0
+q03,True,¿Qué controlan los parámetros k1 y b en BM25 y qué valores suelen tomar?,k1 controla qué tan rápido se satura la frecuencia del término y suele estar entre 1.2 y 2.0. b controla la penalización por longitud del documento: con b=1 la penalización es máxima y con b=0 se ignora la longitud; suele valer 0.75.,No encontré esa información en la base de conocimientos.,True,"MÉTODO BM25 -
+BEST MATCHING 25 ||| BM25
+Es considerado el estándar de la industria para la recuperación de información ( Keyword Search ) y es el 
+sucesor directo del TF -IDF.
+Ventajas  de  BM 25 sobre  TF -IDF.  Ambos  métodos  miden  la  importancia  de  las  palabras,  BM 25 corrige  
+dos  limitaciones  críticas  del  TF -IDF  tradicional :
+• Saturación  del  TF  (Term  Frequency ): En  TF -IDF,  si  una  palabra  aparece  100  veces,  tiene  10  veces  más  
+importancia  que  si  aparece  10  veces . BM 25 aplica  una  ""saturación"" : a partir  de  cierto  número  de  
+apariciones,  la  importancia  deja  de  crecer  linealmente . Si  ya  viste  la  palabra  10  veces,  verla  20 no  
+duplica  la  relevancia .
+• Normalización  por  Longitud  del  Documento : TF -IDF  suele  beneficiar  injustamente  a los  
+documentos  largos  (porque  tienen  más  palabras  y mayor  probabilidad  de  repetir  términos) . BM 25","['3 BM25_Score.pdf#0', '3 BM25_Score.pdf#1']",0.46,0.0,0.033032966435015965,0.0,0.0
+q04,True,¿Cómo se calcula el IDF y para qué sirve?,El IDF se calcula como el logaritmo del total de documentos dividido entre el número de documentos que contienen la palabra. Mide qué tan importante o rara es una palabra en toda la colección y reduce la relevancia de las palabras comunes que aparecen en muchos documentos.,"- **Cálculo del IDF**: IDF = log ( total de documentos / número de documentos en los que aparece el término ) [1].  
+- **Propósito**: Mide la rareza de un término en la colección; cuanto menos frecuente sea, mayor será su peso, lo que ayuda a que los términos distintivos influyan más en la puntuación de similitud en búsquedas y clasificación de documentos. [1]",False,"CÁLCULO Y FÓRMULA DE TF-IDF
+Ejemplo
+Si tenemos 5 documentos en total y la palabra ""IA"" aparece en 3 de ellos, el cálculo del IDF sería:
+IDF = log(total documentos / documentos en los que aparece el término ) = log (5 / 3) = 0,22
+Ahora para obtener el TF-IDF final, necesitamos el valor del TF de un documento específico. Supongamos 
+que en el Documento 1, la palabra ""IA"" aparece 3 veces y el texto tiene un total de 10 palabras.
+TF = numero de veces / total palabras = 3 /10 = 0,3
+TF-IDF (doc1) = TF(IA, doc1) * log ( total documentos / docs (IA) = 0,3 * 0,22 = 0,066 ||| EJEMPLO
+Listado de documentos
+Cantidad de documentos
+Cálculo del IDF general","['TF-IDF_Keyword_search.pdf#24', 'TF-IDF_Keyword_search.pdf#35']",0.65,1.0,0.9498194374015143,0.9999999999,1.0
+q05,True,"Si hay 5 documentos, la palabra IA aparece en 3 de ellos y en el documento 1 aparece 3 veces en un texto de 10 palabras, ¿cuál es su TF-IDF?","El IDF es log(5/3) = 0,22 y el TF es 3/10 = 0,3, por lo que el TF-IDF del documento 1 es 0,3 × 0,22 = 0,066.","El TF‑IDF del término **IA** en el documento 1 es:
+
+- TF = 3 / 10 = 0,3  
+- IDF = log(5 / 3) ≈ 0,22  
+- TF‑IDF = 0,3 × 0,22 ≈ **0,066** [1]",False,"CÁLCULO Y FÓRMULA DE TF-IDF
+Ejemplo
+Si tenemos 5 documentos en total y la palabra ""IA"" aparece en 3 de ellos, el cálculo del IDF sería:
+IDF = log(total documentos / documentos en los que aparece el término ) = log (5 / 3) = 0,22
+Ahora para obtener el TF-IDF final, necesitamos el valor del TF de un documento específico. Supongamos 
+que en el Documento 1, la palabra ""IA"" aparece 3 veces y el texto tiene un total de 10 palabras.
+TF = numero de veces / total palabras = 3 /10 = 0,3
+TF-IDF (doc1) = TF(IA, doc1) * log ( total documentos / docs (IA) = 0,3 * 0,22 = 0,066 ||| CÁLCULO Y FÓRMULA DE TF-IDF
+Score = TF(word, doc) × log(Total docs / Docs containing word)
+TF: Mide qué tan seguido aparece la palabra en un documento específico. Si un documento menciona ""IA"" 10 
+veces, es más probable que trate sobre ese tema que uno que solo la menciona 1 vez.
+Ejemplo: En el Documento A (de 100 palabras), la palabra ""IA"" aparece 3 veces. Su TF es 3 / 100 = 0.03.
+IDF: Mide qué tan ""especial"" o rara es la palabra en toda la biblioteca. 
+Ejemplo: Palabras como ""el"", ""de"" o ""que"" aparecen en todos los documentos (IDF bajo). Palabras como ""algoritmo"" 
+o ""redes neuronales"" son más raras y nos ayudan a filtrar mejor (IDF alto).
+Formula: log((Total de documentos) /(Documentos con la palabra).","['TF-IDF_Keyword_search.pdf#24', 'TF-IDF_Keyword_search.pdf#23']",0.7,1.0,0.7294142504768634,0.99999999995,1.0
+q06,True,¿Cuál es la diferencia entre keyword search y semantic search?,"La keyword search busca documentos que contengan las palabras exactas que aparecen en el prompt, mientras que la semantic search busca documentos con un significado similar al enunciado, incluso si no comparten palabras.",No encontré esa información en la base de conocimientos.,True,"DEFINICIÓN Y PROPÓSITO DE KEYWORD SEARCH
+Concepto de búsqueda por palabras clave
+La búsqueda por palabras clave recupera documentos que
+contienen términos específicos de la consulta del usuario .
+Propósito principal
+Identificar información relevante en grandes colecciones
+textuales mediante términos visibles y explícitos .
+Fundamento de motores de búsqueda
+La búsqueda por palabras clave es la base para sistemas que
+permiten encontrar resultados útiles rápidamente . ||| TIPOS DE BÚSQUEDAS Y APLICACIONES COMUNES
+Tipos de búsqueda por palabra clave
+Existen búsqueda exacta, búsqueda booleana y búsqueda 
+de frase para diferentes necesidades de consulta.
+Aplicaciones comunes
+Estas búsquedas se aplican en motores web, bases de 
+datos, sistemas legales, comerciales y comercio 
+electrónico.
+Búsqueda booleana avanzada
+La búsqueda booleana usa operadores AND, OR y NOT para 
+refinar resultados y consultas complejas.","['TF-IDF_Keyword_search.pdf#11', 'TF-IDF_Keyword_search.pdf#12']",0.47,0.0,0.20451912827997523,0.99999999995,0.0
+q07,True,¿Qué es el metadata filtering y cuáles son sus desventajas?,"Es una técnica que usa criterios rígidos para reducir los documentos según metadatos como título, autor, fecha de creación o privilegios de acceso; no realiza la recuperación, sino que reduce los resultados de otras técnicas. Sus desventajas son que no es un buscador real, es rígido e ignora el contenido, y es inútil si se usa solo.","- **Metadata filtering** es una técnica que usa criterios rígidos (título, autor, fecha, privilegios, etc.) para reducir el conjunto de documentos según sus metadatos [1].
+
+- **Desventajas**:  
+  • No es un buscador real.  
+  • Es rígido e ignora el contenido del documento.  
+  • Resulta inútil si se usa sin combinarlo con otras técnicas de recuperación. [2]",False,"METADATA FILTERING 
+Utiliza criterios rígidos para reducir documentos basándose en metadatos como título, autor, fecha de 
+creación, privilegios de acceso y más. ||| VENTAJAS Y DESVENTAJAS
+Ventajas
+• Fácil de entender y depurar
+• Rápido, optimizado, maduro y 
+fiable
+• Aplica reglas de recuperación 
+estrictas, que coinciden 
+exactamente con los criterios 
+de filtrado
+Desventajas
+• No es un buscador real
+• Rígido, ignora el contenido.
+• Inútil si se utiliza solo","['TF-IDF_Keyword_search.pdf#7', 'TF-IDF_Keyword_search.pdf#9']",0.79,1.0,0.9535116323737346,0.99999999995,1.0
+q08,True,¿Qué es la búsqueda híbrida?,"Es la combinación de keyword search (sensible a las palabras exactas del usuario), semantic search (encuentra documentos de significado similar aunque no coincidan las palabras) y metadata filtering (excluye documentos con criterios rígidos). Los recuperadores de alto desempeño equilibran las tres técnicas según las necesidades del proyecto.","La búsqueda híbrida combina diferentes tipos de recuperación —búsqueda por palabras clave, búsqueda semántica y búsqueda vectorial— para atender consultas variadas y mejorar la relevancia de los resultados [1].",False,"Hybrid retrieval strategies integrate keyword, semantic, and
+vector searches to cater to diverse queries. Additionally, em-
+ploying sub-queries and hypothetical document embeddings
+(HyDE) [11] seeks to improve retrieval relevance by focusing
+on embedding similarities between generated answers and real
+documents.
+Adjustments in module arrangement and interaction, such
+as the Demonstrate-Search-Predict (DSP) [23] framework
+and the iterative Retrieve-Read-Retrieve-Read flow of ITER-
+RETGEN [14], showcase the dynamic use of module out-
+puts to bolster another module’s functionality, illustrating a
+sophisticated understanding of enhancing module synergy.
+The flexible orchestration of Modular RAG Flow showcases
+the benefits of adaptive retrieval through techniques such as
+FLARE [24] and Self-RAG [25]. This approach transcends
+the fixed RAG retrieval process by evaluating the necessity
+of retrieval based on different scenarios. Another benefit of ||| TIPOS DE BÚSQUEDAS Y APLICACIONES COMUNES
+Tipos de búsqueda por palabra clave
+Existen búsqueda exacta, búsqueda booleana y búsqueda 
+de frase para diferentes necesidades de consulta.
+Aplicaciones comunes
+Estas búsquedas se aplican en motores web, bases de 
+datos, sistemas legales, comerciales y comercio 
+electrónico.
+Búsqueda booleana avanzada
+La búsqueda booleana usa operadores AND, OR y NOT para 
+refinar resultados y consultas complejas.","['2312.10997v5.pdf#21', 'TF-IDF_Keyword_search.pdf#12']",0.54,1.0,0.9275527869175471,0.9999999999,0.5
+q09,True,¿Qué limitaciones tiene TF-IDF?,"TF-IDF no captura relaciones semánticas profundas ni maneja bien términos con múltiples significados, y el procesamiento de grandes volúmenes de datos puede comprometer su eficiencia sin optimizaciones, por lo que requiere modelos complementarios para recuperar información contextualizada.",No encontré esa información en la base de conocimientos.,True,"VENTAJAS, 
+DESAFÍOS Y 
+EVOLUCIÓN DE 
+TF-IDF ||| PUNTOS CLAVE DE LA AGENDA
+1. Enfoques  de búsqueda
+2. Conceptos  esenciales  del modelo  TF-IDF
+3. Aplicación  del mecanismo  TF-IDF
+4. Código de ejemplo","['TF-IDF_Keyword_search.pdf#29', 'TF-IDF_Keyword_search.pdf#1']",1.96,0.0,0.15547201489277918,0.0,0.0
+q10,True,¿Por qué alucinan los LLMs?,"Porque generan secuencias probables de palabras a partir de patrones estadísticos de sus datos de entrenamiento; las brechas en su base de conocimientos producen respuestas imprecisas que pueden sonar correctas sin ser ciertas. Están diseñados para generar texto probable, no texto verdadero.","Los LLMs generan secuencias probables de palabras basándose en patrones estadísticos aprendidos durante el entrenamiento. Cuando hay brechas en su base de conocimientos, producen respuestas imprecisas que pueden “sonar correctas” sin ser verdaderas. En esencia, están diseñados para generar texto probable, no necesariamente texto verdadero [2].",False,"Introducción a los LLMs ||| ¿Por qué los LLMs alucinan?
+• Los LLMs generan secuencias probables de palabras
+• Generan patrones estadísticos a partir de los datos con los cuales fueron 
+entrenados.
+• Brechas en la base de conocimientos producen respuestas 
+imprecisas
+• Respuestas pueden “sonar correctas” pero no son ciertas.
+• Verdadero <> probable
+• LLMs están diseñados para generar “probable” texto, no texto verdadero","['Introducción a RAG.pdf#17', 'Introducción a RAG.pdf#21']",0.83,1.0,0.287429299395119,0.49999999995,1.0
+q11,True,¿Qué ventajas tiene implementar RAG?,"Incorpora información que no contienen los LLMs, reduce las alucinaciones, mantiene el modelo actualizado y permite referenciar la fuente.","- Amplía el alcance de aplicación de RAG a dominios multimodales, permitiendo interpretar y procesar datos como imágenes, videos y código [1].
+- Mejora la integración técnica con otras metodologías de IA (fine‑tuning, reinforcement learning), lo que incrementa sus capacidades y utilidad práctica en despliegues de IA [1].
+- Atrae interés tanto académico como industrial, lo que genera oportunidades de investigación y desarrollo de herramientas de soporte para RAG [1].",False,"external knowledge bases. The survey showcases the evolution
+of RAG technologies and their application on many different
+tasks. The analysis outlines three developmental paradigms
+within the RAG framework: Naive, Advanced, and Modu-
+lar RAG, each representing a progressive enhancement over
+its predecessors. RAG’s technical integration with other AI
+methodologies, such as fine-tuning and reinforcement learning,
+has further expanded its capabilities. Despite the progress in
+RAG technology, there are research opportunities to improve
+its robustness and its ability to handle extended contexts.
+RAG’s application scope is expanding into multimodal do-
+mains, adapting its principles to interpret and process diverse
+data forms like images, videos, and code. This expansion high-
+lights RAG’s significant practical implications for AI deploy-
+ment, attracting interest from academic and industrial sectors. ||| 17
+The growing ecosystem of RAG is evidenced by the rise in
+RAG-centric AI applications and the continuous development
+of supportive tools. As RAG’s application landscape broadens,
+there is a need to refine evaluation methodologies to keep
+pace with its evolution. Ensuring accurate and representative
+performance assessments is crucial for fully capturing RAG’s
+contributions to the AI research and development community.
+REFERENCES
+[1] N. Kandpal, H. Deng, A. Roberts, E. Wallace, and C. Raffel, “Large
+language models struggle to learn long-tail knowledge,” in Interna-
+tional Conference on Machine Learning . PMLR, 2023, pp. 15 696–
+15 707.
+[2] Y . Zhang, Y . Li, L. Cui, D. Cai, L. Liu, T. Fu, X. Huang, E. Zhao,
+Y . Zhang, Y . Chenet al., “Siren’s song in the ai ocean: A survey on hal-
+lucination in large language models,” arXiv preprint arXiv:2309.01219,
+2023.
+[3] D. Arora, A. Kini, S. R. Chowdhury, N. Natarajan, G. Sinha, and","['2312.10997v5.pdf#85', '2312.10997v5.pdf#86']",1.26,1.0,0.6781693190472285,0.0,0.0
+q12,True,¿Por qué no conviene agregar siempre todas las fuentes en el prompt?,"Por el alto costo de cómputo, ya que los prompts grandes consumen más recursos para procesarse, y por el límite de la ventana de contexto, que puede superarse, sobre todo en modelos pequeños que solo soportan pocos tokens.","Agregar siempre todas las fuentes en el prompt aumenta el número de tokens, lo que eleva el costo computacional y el consumo de recursos al procesar cada token. Además, al crecer el prompt se corre el riesgo de superar el límite de la ventana de contexto del modelo, especialmente en modelos pequeños que admiten menos tokens [2].",False,"LIMITACIONES Y RETOS EN 
+GRANDES VOLÚMENES DE DATOS
+Limitaciones semánticas
+TF -IDF no captura relaciones semánticas profundas ni maneja bien 
+términos con múltiples significados.
+Desafíos en big  data
+El procesamiento de grandes volúmenes puede comprometer la 
+eficiencia de TF -IDF sin optimizaciones adecuadas.
+Necesidad de modelos avanzados
+Se requieren modelos complementarios para recuperar 
+información contextualizada y mejorar resultados. ||| RAG resuelve el problema de las alucinaciones
+¿Por qué no agregar siempre en el prompt  las fuentes?
+Alto costo de computo
+• Prompts grandes consumen mas 
+recursos computacionales para 
+procesar
+• Por cada token ejecutan un proceso de 
+análisis.
+Límite en la ventana de contexto
+• Es posible que se supere el limite de la 
+ventana de contexto
+• En modelos pequeños solo se 
+soportan una cantidad reducida de 
+tokens","['TF-IDF_Keyword_search.pdf#31', 'Introducción a RAG.pdf#23']",0.55,0.8,0.8235899399886324,0.49999999995,1.0
+q13,True,¿Cuáles son los tres pasos del Naive RAG?,"Indexación: los documentos se dividen en chunks, se codifican en vectores y se guardan en una base vectorial. Recuperación: se recuperan los top k chunks más relevantes para la pregunta según similitud semántica. Generación: la pregunta original y los chunks recuperados se pasan juntos al LLM para generar la respuesta.","Los tres pasos del Naive RAG son: **indexado**, **recuperación** y **generación** [1].",False,"4
+Fig. 3. Comparison between the three paradigms of RAG. (Left) Naive RAG mainly consists of three parts: indexing, retrieval and generation. (Middle)
+Advanced RAG proposes multiple optimization strategies around pre-retrieval and post-retrieval, with a process similar to the Naive RAG, still following a
+chain-like structure. (Right) Modular RAG inherits and develops from the previous paradigm, showcasing greater flexibility overall. This is evident in the
+introduction of multiple specific functional modules and the replacement of existing modules. The overall process is not limited to sequential retrieval and
+generation; it includes methods such as iterative and adaptive retrieval.
+Pre-retrieval process. In this stage, the primary focus is
+on optimizing the indexing structure and the original query.
+The goal of optimizing indexing is to enhance the quality of
+the content being indexed. This involves strategies: enhancing
+data granularity, optimizing index structures, adding metadata, ||| RAG, and Modular RAG, as showed in Figure 3. Despite
+RAG method are cost-effective and surpass the performance
+of the native LLM, they also exhibit several limitations.
+The development of Advanced RAG and Modular RAG is
+a response to these specific shortcomings in Naive RAG.
+A. Naive RAG
+The Naive RAG research paradigm represents the earli-
+est methodology, which gained prominence shortly after the","['2312.10997v5.pdf#15', '2312.10997v5.pdf#9']",2.82,0.0,0.9755832371017119,0.9999999999,1.0
+q14,True,¿Qué ventajas y desventajas tienen los chunks grandes frente a los pequeños?,"Los chunks grandes capturan más contexto, pero generan más ruido y requieren más tiempo de procesamiento y mayor costo. Los chunks pequeños tienen menos ruido, pero pueden no transmitir todo el contexto necesario.",No encontré esa información en la base de conocimientos.,True,"while generation solely relying on long context remains a
+black box. Conversely, the expansion of context provides new
+opportunities for the development of RAG, enabling it to
+address more complex problems and integrative or summary
+questions that require reading a large amount of material to
+answer [49]. Developing new RAG methods in the context of
+super-long contexts is one of the future research trends.
+B. RAG Robustness
+The presence of noise or contradictory information during
+retrieval can detrimentally affect RAG’s output quality. This
+situation is figuratively referred to as “Misinformation can
+be worse than no information at all”. Improving RAG’s
+resistance to such adversarial or counterfactual inputs is gain-
+ing research momentum and has become a key performance
+metric [48], [50], [82]. Cuconasu et al. [54] analyze which
+type of documents should be retrieved, evaluate the relevance
+of the documents to the prompt, their position, and the ||| of retrieval based on different scenarios. Another benefit of
+a flexible architecture is that the RAG system can more
+easily integrate with other technologies (such as fine-tuning
+or reinforcement learning) [26]. For example, this can involve
+fine-tuning the retriever for better retrieval results, fine-tuning
+the generator for more personalized outputs, or engaging in
+collaborative fine-tuning [27].
+D. RAG vs Fine-tuning
+The augmentation of LLMs has attracted considerable atten-
+tion due to their growing prevalence. Among the optimization
+methods for LLMs, RAG is often compared with Fine-tuning
+(FT) and prompt engineering. Each method has distinct charac-
+teristics as illustrated in Figure 4. We used a quadrant chart to
+illustrate the differences among three methods in two dimen-
+sions: external knowledge requirements and model adaption
+requirements. Prompt engineering leverages a model’s inherent
+capabilities with minimum necessity for external knowledge","['2312.10997v5.pdf#75', '2312.10997v5.pdf#22']",7.83,0.0,0.11304946885734424,0.9999999999,1.0
+q15,True,¿Cuáles son los componentes de un prompt correcto?,"Tarea (la acción que debe realizar la IA), formato (el tipo y estructura del resultado), tema (el sujeto central de la tarea), tono o estilo, contexto (información de fondo sobre la situación, la audiencia o el objetivo) y requerimientos o restricciones (qué debe incluirse y qué evitarse).",No encontré esa información en la base de conocimientos.,True,"Consequently, some approaches opt to incorporate an external
+adapter to aid in alignment.
+To optimize the multi-task capabilities of LLM, UP-
+RISE [20] trained a lightweight prompt retriever that can
+automatically retrieve prompts from a pre-built prompt pool
+that are suitable for a given zero-shot task input. AAR
+(Augmentation-Adapted Retriver) [47] introduces a universal
+adapter designed to accommodate multiple downstream tasks.
+While PRCA [69] add a pluggable reward-driven contextual
+adapter to enhance performance on specific tasks. BGM [26]
+keeps the retriever and LLM fixed,and trains a bridge Seq2Seq
+model in between. The bridge model aims to transform the
+retrieved information into a format that LLMs can work with
+effectively, allowing it to not only rerank but also dynami-
+cally select passages for each query, and potentially employ
+more advanced strategies like repetition. Furthermore, PKG ||| Estos componentes incluyen:
+A. Tarea (Task)
+ 8 de febrero de 2026 11 01
+🎚  Introducción Ingeniería Prompt
+1","['2312.10997v5.pdf#49', 'Introducción_Ingeniería_Prompt (3).pdf#1']",0.48,0.0,0.06629203478020836,0.0,0.0
+q16,False,¿Qué es pgvector y cuándo conviene usarlo?,La base de conocimientos no contiene información sobre esto.,No encontré esa información en la base de conocimientos.,True,"Estos componentes incluyen:
+A. Tarea (Task)
+ 8 de febrero de 2026 11 01
+🎚  Introducción Ingeniería Prompt
+1 ||| Introducción a los LLMs","['Introducción_Ingeniería_Prompt (3).pdf#1', 'Introducción a RAG.pdf#17']",0.55,,,,
+q17,False,¿Cuánto cuesta un millón de tokens de GPT-4o?,La base de conocimientos no contiene información sobre esto.,No encontré esa información en la base de conocimientos.,True,"FUNDAMENTOS DE 
+RECUPERACIÓN DE 
+INFORMACIÓN ||| 12
+probability of generated terms [24]. When the probability falls
+below a certain threshold would activates the retrieval system
+to collect relevant information, thus optimizing the retrieval
+cycle. Self-RAG [25] introduces “reflection tokens” that allow
+the model to introspect its outputs. These tokens come in
+two varieties: “retrieve” and “critic”. The model autonomously
+decides when to activate retrieval, or alternatively, a predefined
+threshold may trigger the process. During retrieval, the gen-
+erator conducts a fragment-level beam search across multiple
+paragraphs to derive the most coherent sequence. Critic scores
+are used to update the subdivision scores, with the flexibility
+to adjust these weights during inference, tailoring the model’s
+behavior. Self-RAG’s design obviates the need for additional
+classifiers or reliance on Natural Language Inference (NLI)
+models, thus streamlining the decision-making process for
+when to engage retrieval mechanisms and improving the","['TF-IDF_Keyword_search.pdf#0', '2312.10997v5.pdf#62']",2.76,,,,
+q18,False,¿Quién ganó el Mundial de fútbol de 2018?,La base de conocimientos no contiene información sobre esto.,No encontré esa información en la base de conocimientos.,True,"RAG – Retrieval Augmented Generation
+Colocar información que no tiene el LLM en el Prompt
+LLM
+Prompt del usuario
+¿por qué los hoteles son tan costosos este 
+fin de semana en Cartagena?
+Hay Festival Cartagena de Indias 2026 se celebró del 29 de enero al 1 de febrero con 
+más de 180 participantes procedentes de 25 países. Conversaciones de literatura, 
+música, periodismo, actualidad, filosofía, cine, teatro y mucho más en nuestra 
+vigésimo primera edición en Colombia. ¡Escucha las charlas de nuevo!
+RAG Prompt Aumentado ||| 2023.
+[3] D. Arora, A. Kini, S. R. Chowdhury, N. Natarajan, G. Sinha, and
+A. Sharma, “Gar-meets-rag paradigm for zero-shot information re-
+trieval,” arXiv preprint arXiv:2310.20158 , 2023.
+[4] P. Lewis, E. Perez, A. Piktus, F. Petroni, V . Karpukhin, N. Goyal,
+H. K ¨uttler, M. Lewis, W.-t. Yih, T. Rockt ¨aschel et al. , “Retrieval-
+augmented generation for knowledge-intensive nlp tasks,” Advances in
+Neural Information Processing Systems, vol. 33, pp. 9459–9474, 2020.
+[5] S. Borgeaud, A. Mensch, J. Hoffmann, T. Cai, E. Rutherford, K. Milli-
+can, G. B. Van Den Driessche, J.-B. Lespiau, B. Damoc, A. Clarket al.,
+“Improving language models by retrieving from trillions of tokens,”
+in International conference on machine learning . PMLR, 2022, pp.
+2206–2240.
+[6] L. Ouyang, J. Wu, X. Jiang, D. Almeida, C. Wainwright, P. Mishkin,
+C. Zhang, S. Agarwal, K. Slama, A. Ray et al. , “Training language
+models to follow instructions with human feedback,” Advances in","['Introducción a RAG.pdf#12', '2312.10997v5.pdf#87']",0.05,,,,
+q19,False,¿Cómo se entrena una red neuronal convolucional con PyTorch?,La base de conocimientos no contiene información sobre esto.,No encontré esa información en la base de conocimientos.,True,"models to follow instructions with human feedback,” Advances in
+neural information processing systems , vol. 35, pp. 27 730–27 744,
+2022.
+[7] X. Ma, Y . Gong, P. He, H. Zhao, and N. Duan, “Query rewrit-
+ing for retrieval-augmented large language models,” arXiv preprint
+arXiv:2305.14283, 2023.
+[8] I. ILIN, “Advanced rag techniques: an il-
+lustrated overview,” https://pub.towardsai.net/
+advanced-rag-techniques-an-illustrated-overview-04d193d8fec6,
+2023.
+[9] W. Peng, G. Li, Y . Jiang, Z. Wang, D. Ou, X. Zeng, E. Chen et al. ,
+“Large language model based long-tail query rewriting in taobao
+search,” arXiv preprint arXiv:2311.03758 , 2023.
+[10] H. S. Zheng, S. Mishra, X. Chen, H.-T. Cheng, E. H. Chi, Q. V . Le,
+and D. Zhou, “Take a step back: Evoking reasoning via abstraction in
+large language models,” arXiv preprint arXiv:2310.06117 , 2023.
+[11] L. Gao, X. Ma, J. Lin, and J. Callan, “Precise zero-shot dense retrieval
+without relevance labels,” arXiv preprint arXiv:2212.10496 , 2022. ||| [153] S. Narayan, S. B. Cohen, and M. Lapata, “Don’t give me the details,
+just the summary! topic-aware convolutional neural networks for ex-
+treme summarization,” arXiv preprint arXiv:1808.08745 , 2018.
+[154] S. Saha, J. A. Junaed, M. Saleki, A. S. Sharma, M. R. Rifat, M. Rahouti,
+S. I. Ahmed, N. Mohammed, and M. R. Amin, “Vio-lens: A novel
+dataset of annotated social network posts leading to different forms
+of communal violence and its evaluation,” in Proceedings of the First
+Workshop on Bangla Language Processing (BLP-2023), 2023, pp. 72–
+84.
+[155] X. Li and D. Roth, “Learning question classifiers,” in COLING 2002:
+The 19th International Conference on Computational Linguistics, 2002.
+[156] R. Socher, A. Perelygin, J. Wu, J. Chuang, C. D. Manning, A. Y . Ng,
+and C. Potts, “Recursive deep models for semantic compositionality
+over a sentiment treebank,” in Proceedings of the 2013 conference on
+empirical methods in natural language processing , 2013, pp. 1631–
+1642.","['2312.10997v5.pdf#88', '2312.10997v5.pdf#121']",10.68,,,,
+q20,False,¿Qué dice la Ley 1581 de 2012 sobre protección de datos personales?,La base de conocimientos no contiene información sobre esto.,No encontré esa información en la base de conocimientos.,True,"Recuperación de 
+información ||| RELEVANCIA Y CLASIFICACIÓN DE RESULTADOS
+Uso de valores TF -IDF
+Los valores TF -IDF asignan puntajes que indican la importancia 
+de términos en documentos para una consulta específica.
+Ordenación por relevancia
+Los documentos se ordenan para mostrar primero los más 
+relevantes según los puntajes calculados, mejorando la 
+búsqueda.
+Mejora de experiencia usuario
+Reducir documentos irrelevantes incrementa la precisión y 
+velocidad en la recuperación de información para el usuario.","['Introducción a RAG.pdf#24', 'TF-IDF_Keyword_search.pdf#27']",0.57,,,,

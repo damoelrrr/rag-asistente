@@ -3,7 +3,7 @@
 Asistente conversacional que responde **únicamente** con la información de una base de conocimientos propia y **cita la fuente** (documento y fragmento) de cada respuesta. Cuando la información no está en el corpus, lo dice en lugar de inventar.
 
 > **URL pública de la aplicación:** `https://TU-APP.streamlit.app`  ← *(reemplazar tras el despliegue)*
-> **Repositorio:** `https://github.com/TU-USUARIO/TU-REPO`  ← *(reemplazar)*
+> **Repositorio:** <https://github.com/damoelrrr/rag-asistente>
 
 **Privacidad:** el sistema conserva el control de la base de conocimientos y del índice vectorial. Los documentos no se entregan a servicios de entrenamiento; los embeddings se calculan **localmente** y al LLM solo se le envían los fragmentos recuperados para cada consulta, nunca el corpus completo.
 
@@ -33,17 +33,17 @@ Asistente conversacional que responde **únicamente** con la información de una
 
 | Etapa | Decisión | Justificación |
 |---|---|---|
-| Corpus | 5 documentos `.md` sobre RAG, chunking, embeddings, vector DBs, Ragas y prompting (`data/corpus/`) | Dominio coherente con el asistente (tutor de RAG); fácil de verificar al evaluar. **Reemplázalos por tu propio corpus** y todo sigue funcionando |
+| Corpus | 7 PDFs del curso *Desarrollo de aplicaciones con IA* (`data/corpus/`): Introducción a RAG, survey *RAG for LLMs* (Gao et al., 2024), TF-IDF y keyword search, BM25, ingeniería de prompts, LLMs locales con Ollama y método socrático | El asistente es un tutor del curso: el corpus cubre justo lo que el estudiante consulta (recuperación, RAG, prompting, LLMs locales y la pedagogía socrática del tutor). Mezcla diapositivas cortas en español con un artículo largo en inglés, lo que justifica un embedding multilingüe |
 | Chunking | 800 caracteres, solape 120 (15 %), corte recursivo párrafo → línea → frase → palabra | Suficiente contexto para una idea completa sin mezclar temas; el solape evita cortar ideas en el límite |
 | Embeddings | `paraphrase-multilingual-MiniLM-L12-v2` (384 dim) | Multilingüe (español), ligero, corre local y no envía texto a terceros |
 | Índice | Chroma persistente, distancia coseno | Open source, embebido, guarda texto + metadatos para citar |
 | Recuperación | Similitud coseno, `top_k=4`, descarta fragmentos con distancia > 0.75 | El umbral evita responder con contexto irrelevante (control de alucinaciones) |
-| Generación | LLM vía LangChain (Anthropic u OpenAI), temperatura 0.1 | Respuestas estables y fieles al contexto |
+| Generación | LLM vía LangChain (Groq `openai/gpt-oss-120b` por defecto; también Anthropic u OpenAI), temperatura 0.1 | Respuestas estables y fieles al contexto |
 | Conversación | Reescritura de la pregunta con el historial antes de buscar | Permite preguntas de seguimiento ("¿y su ventaja?") |
 
 ## 2. Instalación y ejecución (local)
 
-Requisitos: Python 3.10–3.12 y una clave de API (Anthropic u OpenAI).
+Requisitos: Python 3.10–3.12 y una clave de API (Groq gratuita en <https://console.groq.com/keys>, o Anthropic/OpenAI).
 
 ```bash
 python -m venv .venv
@@ -58,35 +58,64 @@ La primera ejecución descarga el modelo de embeddings (~470 MB). Abre `http://l
 
 ## 3. Evaluación con Ragas
 
-El conjunto de evaluación está en `eval/eval_questions.json` (16 preguntas con respuesta en el corpus + 4 fuera del corpus).
+El conjunto de evaluación está en `eval/eval_questions.json`: **20 preguntas con respuesta de referencia**, 15 con respuesta en el corpus y 5 fuera de él (pgvector, precio de GPT-4o, Mundial 2018, CNN con PyTorch, Ley 1581) para medir el control de alucinaciones.
 
 ```bash
 # Línea base
 python eval/run_eval.py --tag base   --chunk-size 1000 --overlap 100 --top-k 2
-# Iteración de mejora (cambia chunking y top_k)
-python eval/run_eval.py --tag mejora --chunk-size 500  --overlap 75  --top-k 4
+# Iteración de mejora (chunks más pequeños, más solape y más fragmentos)
+python eval/run_eval.py --tag mejora --chunk-size 800  --overlap 120 --top-k 4
 # Tabla y gráfico comparativos
 python eval/compare.py --before base --after mejora
 ```
 
-- Métricas Ragas (faithfulness, answer_relevancy, context_precision, context_recall) se calculan sobre las preguntas **con** respuesta en el corpus.
-- Las preguntas **fuera** del corpus miden el control de alucinaciones: tasa de abstención (el asistente debe rechazar). Ragas no aplica ahí porque no existe un contexto correcto.
-- Resultados: `eval/results/summary_<tag>.json`, `detalle_<tag>.csv`, `comparison.csv` y `docs/ragas_comparison.png`.
-- Opcional: usa un juez distinto con `JUDGE_PROVIDER` / `JUDGE_MODEL` (OpenAI `gpt-4o-mini` suele ir muy bien con Ragas).
+LLM de generación: `openai/gpt-oss-120b`. Juez de Ragas: `openai/gpt-oss-20b` (ambos en Groq; usar modelos distintos reparte los límites del plan gratuito).
+
+### Resultados
+
+| Métrica | Base (1000 / 100 / k=2) | Mejora (800 / 120 / k=4) | Cambio |
+|---|---|---|---|
+| faithfulness | 0.59 | 0.79 | +0.20 |
+| answer_relevancy | 0.54 | 0.66 | +0.12 |
+| context_precision | 0.67 | 0.65 | −0.02 |
+| context_recall | 0.63 | 0.75 | +0.12 |
+| Abstención fuera del corpus | 100 % | 100 % | = |
+| Rechazos indebidos (preguntas con respuesta) | 33 % | 13 % | −20 pp |
+
+![Comparación Ragas](docs/ragas_comparison.png)
+
+**Análisis.**
+- **Métrica más baja en la versión final: `context_precision` (0.65), que se atribuye a la recuperación.** Los fragmentos que solo contienen el título de una diapositiva ("MÉTODO BM25 - BEST MATCHING 25") y los párrafos del survey en inglés ocupan puestos del top_k y desplazan la diapositiva en español que tiene la respuesta (q03, q09, q11).
+- **La generación es sólida.** Cuando llega el contexto correcto, faithfulness es 1.0 en casi todos los casos, y el asistente rechazó el 100 % de las preguntas fuera del corpus.
+- **La iteración confirma la hipótesis.** Con más fragmentos y más pequeños sube context_recall, y las preguntas que antes se rechazaban por falta de contexto (q06, q14) ahora se responden. A cambio, entra algo más de ruido (precision −0.02).
+- **Siguientes mejoras:** búsqueda híbrida BM25 + embeddings, unir los chunks muy cortos y añadir un re-ranker cross-encoder.
+- **Nota:** en la corrida `mejora`, el límite diario de tokens de Groq dejó sin puntuar 7 de 60 evaluaciones (q13–q15). Comparando solo las 12 preguntas puntuadas completas en ambas corridas, la tendencia es la misma (recall 0.63 → 0.75, faithfulness 0.73 → 0.77, relevancy 0.58 → 0.64, precision 0.67 → 0.65).
+
+Archivos: `eval/results/summary_<tag>.json`, `detalle_<tag>.csv` (respuesta, fragmentos y métricas por pregunta), `comparison.csv` y `docs/ragas_comparison.png`.
 
 ## 4. Despliegue (Streamlit Community Cloud)
 
 1. Sube el repositorio a GitHub (sin `.env` ni `secrets.toml`; ya están en `.gitignore`).
-2. En <https://share.streamlit.io> → **New app** → elige repo, rama y `app.py` como archivo principal.
-3. En **Advanced settings → Secrets** pega:
+2. En <https://share.streamlit.io> → **Create app** → elige repo, rama `main` y `app.py` como archivo principal.
+3. En **Advanced settings** elige **Python 3.12** y en **Secrets** pega:
    ```toml
-   LLM_PROVIDER = "anthropic"
-   ANTHROPIC_API_KEY = "tu-clave"
+   LLM_PROVIDER = "groq"
+   GROQ_API_KEY = "tu-clave"
+   LLM_MODEL = "openai/gpt-oss-120b"
    ```
-4. **Deploy**. La app construye el índice al arrancar a partir de `data/corpus/`.
+4. **Deploy**. El primer arranque tarda unos minutos: instala dependencias, descarga el modelo de embeddings y construye el índice a partir de `data/corpus/`.
 5. Copia la URL pública y pégala arriba en este README.
 
 Alternativas: Hugging Face Spaces (SDK Streamlit, secrets en *Settings → Variables and secrets*), Render o Railway (comando de inicio: `streamlit run app.py --server.port $PORT --server.address 0.0.0.0`).
+
+### PDF de entrega
+
+Con las capturas en `docs/screenshots/` (`01_…` a `06_…`) y los resultados de Ragas, se genera `docs/Entrega_Avance2.pdf`:
+
+```bash
+python scripts/build_deliverable_pdf.py --autor "Tu nombre" --curso "Tu curso" \
+    --url https://TU-APP.streamlit.app --repo https://github.com/damoelrrr/rag-asistente
+```
 
 ## 5. Estructura del repositorio
 

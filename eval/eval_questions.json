@@ -1,122 +1,122 @@
 [
   {
     "id": "q01",
-    "question": "¿Quién propuso la arquitectura RAG y en qué año?",
-    "ground_truth": "Fue propuesta en 2020 por Patrick Lewis y colegas de Facebook AI Research.",
+    "question": "¿Qué es BM25 y de qué método es sucesor?",
+    "ground_truth": "BM25 (Best Matching 25) es considerado el estándar de la industria para la recuperación de información por palabras clave (keyword search) y es el sucesor directo de TF-IDF.",
     "answerable": true
   },
   {
     "id": "q02",
-    "question": "¿Cuáles son las dos fases de un sistema RAG?",
-    "ground_truth": "La fase de indexación (leer documentos, dividirlos en chunks, convertirlos en vectores con un modelo de embeddings y guardarlos en una base vectorial) y la fase de consulta (vectorizar la pregunta, buscar los fragmentos más cercanos y enviarlos al LLM junto con la pregunta).",
+    "question": "¿Qué dos limitaciones de TF-IDF corrige BM25?",
+    "ground_truth": "La saturación del TF: en BM25, a partir de cierto número de apariciones la importancia de una palabra deja de crecer linealmente; y la normalización por longitud del documento: TF-IDF beneficia injustamente a los documentos largos, mientras BM25 los penaliza y premia a los documentos cortos que son relevantes.",
     "answerable": true
   },
   {
     "id": "q03",
-    "question": "¿Qué ventajas tiene RAG frente al fine-tuning?",
-    "ground_truth": "Permite actualizar el conocimiento sin reentrenar, reduce las alucinaciones, permite citar la fuente de cada afirmación y mantiene el control de los datos porque solo se envían al LLM los fragmentos recuperados.",
+    "question": "¿Qué controlan los parámetros k1 y b en BM25 y qué valores suelen tomar?",
+    "ground_truth": "k1 controla qué tan rápido se satura la frecuencia del término y suele estar entre 1.2 y 2.0. b controla la penalización por longitud del documento: con b=1 la penalización es máxima y con b=0 se ignora la longitud; suele valer 0.75.",
     "answerable": true
   },
   {
     "id": "q04",
-    "question": "¿Cuál es la principal limitación de un sistema RAG?",
-    "ground_truth": "Un RAG es tan bueno como su recuperación: si el fragmento correcto no llega al LLM, la respuesta será incompleta o incorrecta. Además añade latencia y costo.",
+    "question": "¿Cómo se calcula el IDF y para qué sirve?",
+    "ground_truth": "El IDF se calcula como el logaritmo del total de documentos dividido entre el número de documentos que contienen la palabra. Mide qué tan importante o rara es una palabra en toda la colección y reduce la relevancia de las palabras comunes que aparecen en muchos documentos.",
     "answerable": true
   },
   {
     "id": "q05",
-    "question": "¿Cuáles son los parámetros principales del chunking?",
-    "ground_truth": "El tamaño del chunk, el solapamiento (overlap) y el criterio de corte.",
+    "question": "Si hay 5 documentos, la palabra IA aparece en 3 de ellos y en el documento 1 aparece 3 veces en un texto de 10 palabras, ¿cuál es su TF-IDF?",
+    "ground_truth": "El IDF es log(5/3) = 0,22 y el TF es 3/10 = 0,3, por lo que el TF-IDF del documento 1 es 0,3 × 0,22 = 0,066.",
     "answerable": true
   },
   {
     "id": "q06",
-    "question": "¿Qué es el solapamiento en el chunking y qué porcentaje se suele usar?",
-    "ground_truth": "Es repetir el final de un chunk al inicio del siguiente para que una idea cortada en el límite no se pierda; normalmente entre el 10 % y el 20 % del tamaño del chunk.",
+    "question": "¿Cuál es la diferencia entre keyword search y semantic search?",
+    "ground_truth": "La keyword search busca documentos que contengan las palabras exactas que aparecen en el prompt, mientras que la semantic search busca documentos con un significado similar al enunciado, incluso si no comparten palabras.",
     "answerable": true
   },
   {
     "id": "q07",
-    "question": "¿Cómo funciona el criterio de corte recursivo?",
-    "ground_truth": "Intenta cortar primero por párrafos, luego por saltos de línea, después por frases y solo al final por caracteres.",
+    "question": "¿Qué es el metadata filtering y cuáles son sus desventajas?",
+    "ground_truth": "Es una técnica que usa criterios rígidos para reducir los documentos según metadatos como título, autor, fecha de creación o privilegios de acceso; no realiza la recuperación, sino que reduce los resultados de otras técnicas. Sus desventajas son que no es un buscador real, es rígido e ignora el contenido, y es inútil si se usa solo.",
     "answerable": true
   },
   {
     "id": "q08",
-    "question": "¿Qué es un embedding y cómo se mide la cercanía entre dos textos?",
-    "ground_truth": "Es una representación numérica de un texto como vector; textos con significado parecido quedan cerca y la cercanía se mide con la similitud coseno.",
+    "question": "¿Qué es la búsqueda híbrida?",
+    "ground_truth": "Es la combinación de keyword search (sensible a las palabras exactas del usuario), semantic search (encuentra documentos de significado similar aunque no coincidan las palabras) y metadata filtering (excluye documentos con criterios rígidos). Los recuperadores de alto desempeño equilibran las tres técnicas según las necesidades del proyecto.",
     "answerable": true
   },
   {
     "id": "q09",
-    "question": "¿Qué modelo de embeddings se recomienda para documentos en español y cuántas dimensiones tiene?",
-    "ground_truth": "paraphrase-multilingual-MiniLM-L12-v2 de sentence-transformers, que genera vectores de 384 dimensiones, funciona en más de 50 idiomas y se ejecuta localmente.",
+    "question": "¿Qué limitaciones tiene TF-IDF?",
+    "ground_truth": "TF-IDF no captura relaciones semánticas profundas ni maneja bien términos con múltiples significados, y el procesamiento de grandes volúmenes de datos puede comprometer su eficiencia sin optimizaciones, por lo que requiere modelos complementarios para recuperar información contextualizada.",
     "answerable": true
   },
   {
     "id": "q10",
-    "question": "¿Qué es HNSW?",
-    "ground_truth": "Hierarchical Navigable Small World, un algoritmo de búsqueda aproximada de vecinos más cercanos (ANN) basado en grafos de varias capas.",
+    "question": "¿Por qué alucinan los LLMs?",
+    "ground_truth": "Porque generan secuencias probables de palabras a partir de patrones estadísticos de sus datos de entrenamiento; las brechas en su base de conocimientos producen respuestas imprecisas que pueden sonar correctas sin ser ciertas. Están diseñados para generar texto probable, no texto verdadero.",
     "answerable": true
   },
   {
     "id": "q11",
-    "question": "¿Por qué Chroma es adecuada para proyectos académicos?",
-    "ground_truth": "Porque es de código abierto, puede funcionar de forma embebida y guarda el índice en disco con persistencia local, ideal para prototipos y proyectos académicos.",
+    "question": "¿Qué ventajas tiene implementar RAG?",
+    "ground_truth": "Incorpora información que no contienen los LLMs, reduce las alucinaciones, mantiene el modelo actualizado y permite referenciar la fuente.",
     "answerable": true
   },
   {
     "id": "q12",
-    "question": "¿Qué es pgvector y cuándo conviene usarlo?",
-    "ground_truth": "Es una extensión de PostgreSQL que añade un tipo de dato vectorial; conviene cuando ya se usa PostgreSQL y se quiere unir datos relacionales y vectores.",
+    "question": "¿Por qué no conviene agregar siempre todas las fuentes en el prompt?",
+    "ground_truth": "Por el alto costo de cómputo, ya que los prompts grandes consumen más recursos para procesarse, y por el límite de la ventana de contexto, que puede superarse, sobre todo en modelos pequeños que solo soportan pocos tokens.",
     "answerable": true
   },
   {
     "id": "q13",
-    "question": "¿Qué mide la métrica faithfulness en Ragas?",
-    "ground_truth": "Mide qué proporción de las afirmaciones de la respuesta está respaldada por los contextos recuperados; una puntuación baja indica alucinaciones y apunta a la etapa de generación.",
+    "question": "¿Cuáles son los tres pasos del Naive RAG?",
+    "ground_truth": "Indexación: los documentos se dividen en chunks, se codifican en vectores y se guardan en una base vectorial. Recuperación: se recuperan los top k chunks más relevantes para la pregunta según similitud semántica. Generación: la pregunta original y los chunks recuperados se pasan juntos al LLM para generar la respuesta.",
     "answerable": true
   },
   {
     "id": "q14",
-    "question": "¿Qué indica un context_recall bajo?",
-    "ground_truth": "Indica que falta información de la respuesta de referencia en los contextos recuperados, lo que suele deberse al chunking o a un top_k insuficiente.",
+    "question": "¿Qué ventajas y desventajas tienen los chunks grandes frente a los pequeños?",
+    "ground_truth": "Los chunks grandes capturan más contexto, pero generan más ruido y requieren más tiempo de procesamiento y mayor costo. Los chunks pequeños tienen menos ruido, pero pueden no transmitir todo el contexto necesario.",
     "answerable": true
   },
   {
     "id": "q15",
-    "question": "¿Para qué sirven los delimitadores en el prompt de un RAG?",
-    "ground_truth": "Marcan dónde empieza y termina el texto recuperado, ayudan a que el modelo no confunda instrucciones con datos y reducen el riesgo de prompt injection.",
+    "question": "¿Cuáles son los componentes de un prompt correcto?",
+    "ground_truth": "Tarea (la acción que debe realizar la IA), formato (el tipo y estructura del resultado), tema (el sujeto central de la tarea), tono o estilo, contexto (información de fondo sobre la situación, la audiencia o el objetivo) y requerimientos o restricciones (qué debe incluirse y qué evitarse).",
     "answerable": true
   },
   {
     "id": "q16",
-    "question": "¿Cómo se resuelven las preguntas de seguimiento en un RAG conversacional?",
-    "ground_truth": "Reescribiendo la pregunta como una pregunta independiente usando el historial del diálogo antes de buscar en la base vectorial.",
-    "answerable": true
+    "question": "¿Qué es pgvector y cuándo conviene usarlo?",
+    "ground_truth": "La base de conocimientos no contiene información sobre esto.",
+    "answerable": false
   },
   {
     "id": "q17",
     "question": "¿Cuánto cuesta un millón de tokens de GPT-4o?",
-    "ground_truth": "La información no está en la base de conocimientos.",
+    "ground_truth": "La base de conocimientos no contiene información sobre esto.",
     "answerable": false
   },
   {
     "id": "q18",
     "question": "¿Quién ganó el Mundial de fútbol de 2018?",
-    "ground_truth": "La información no está en la base de conocimientos.",
+    "ground_truth": "La base de conocimientos no contiene información sobre esto.",
     "answerable": false
   },
   {
     "id": "q19",
     "question": "¿Cómo se entrena una red neuronal convolucional con PyTorch?",
-    "ground_truth": "La información no está en la base de conocimientos.",
+    "ground_truth": "La base de conocimientos no contiene información sobre esto.",
     "answerable": false
   },
   {
     "id": "q20",
-    "question": "¿Qué dice la Ley 1581 de 2012 sobre protección de datos?",
-    "ground_truth": "La información no está en la base de conocimientos.",
+    "question": "¿Qué dice la Ley 1581 de 2012 sobre protección de datos personales?",
+    "ground_truth": "La base de conocimientos no contiene información sobre esto.",
     "answerable": false
   }
 ]

@@ -1,0 +1,6 @@
+﻿métrica,antes,después,cambio
+faithfulness,0.5867,0.7885,0.2018
+answer_relevancy,0.5399,0.6588,0.1189
+context_precision,0.6667,0.6505,-0.0162
+context_recall,0.6333,0.75,0.1167
+abstención fuera de corpus,1.0,1.0,0.0

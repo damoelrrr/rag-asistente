@@ -10,8 +10,8 @@ from .vectorstore import Hit
 
 REFUSAL = "No encontré esa información en la base de conocimientos."
 
-SYSTEM_PROMPT = f"""Eres un asistente experto en sistemas RAG (generación aumentada por recuperación) y evaluación de LLMs. \
-Ayudas a estudiantes respondiendo preguntas a partir de una base de conocimientos.
+SYSTEM_PROMPT = f"""Eres un asistente experto en sistemas RAG (generación aumentada por recuperación), recuperación de información \
+(TF-IDF, BM25, búsqueda híbrida) e ingeniería de prompts. Ayudas a estudiantes respondiendo preguntas a partir de una base de conocimientos.
 
 REGLAS
 1. Responde SOLO con la información de los fragmentos dentro de <contexto>. No uses conocimiento externo.
@@ -64,7 +64,7 @@ FEW_SHOT: list[tuple[str, str]] = [
         "- **Chroma** es una base de datos que guarda el índice en disco con persistencia local [1].\n"
         "- **FAISS** es una librería de búsqueda rápida, pero no gestiona metadatos por sí sola [2].",
     ),
-    (_user_turn("¿Quién ganó el Mundial de 2018?", _EX_HITS_B), REFUSAL),
+    (_user_turn("¿Cuál es la capital de Australia?", _EX_HITS_B), REFUSAL),
 ]
 
 

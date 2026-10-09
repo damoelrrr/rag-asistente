@@ -54,5 +54,5 @@ class Settings:
         return self.index_root / f"cs{self.chunk_size}_ov{self.chunk_overlap}_{slug}"
 
     def default_model(self, provider: str) -> str:
-        return {"anthropic": "claude-haiku-5-5", "openai": "gpt-4o-mini", "groq": "llama-3.1-8b-instant"}.get(provider, "")
+        return {"anthropic": "claude-haiku-5-5", "openai": "gpt-4o-mini", "groq": "openai/gpt-oss-120b"}.get(provider, "")
 

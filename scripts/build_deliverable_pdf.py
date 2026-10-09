@@ -130,8 +130,8 @@ s += [P("1. Flujo RAG implementado", "h1"),
       P("Justificación de las decisiones técnicas", "h2")]
 s += table([
     ["Etapa", "Decisión", "Justificación"],
-    ["Selección de documentos", "5 documentos Markdown (RAG, chunking y embeddings, bases vectoriales, evaluación con Ragas, prompting y alucinaciones).",
-     "Cubren el dominio del asistente (tutor de RAG), son de longitud homogénea y permiten verificar manualmente cada respuesta al evaluar."],
+    ["Selección de documentos", "7 PDFs del curso «Desarrollo de aplicaciones con IA»: Introducción a RAG, survey de RAG (Gao et al., 2024), TF-IDF y búsqueda por palabras clave, BM25, ingeniería de prompts, ejecución de LLMs con Ollama y método socrático.",
+     "El asistente es un tutor del curso: el corpus cubre exactamente los temas que el estudiante consulta (recuperación, RAG, prompting, LLMs locales y la pedagogía socrática del tutor). Mezcla diapositivas breves en español con un artículo académico extenso en inglés, lo que pone a prueba un embedding multilingüe."],
     ["Ingesta", "Lectores para PDF (pypdf), DOCX (python-docx), TXT/MD y HTML (BeautifulSoup).",
      "Cubre los formatos pedidos; en PDF se conserva el número de página para citar."],
     ["Chunking", "800 caracteres, solapamiento 120 (15 %), corte recursivo: párrafo, línea, frase, palabra.",
@@ -153,21 +153,33 @@ s += [PageBreak(), P("2. Ejecución de consultas sobre el RAG", "h1"),
       P("Se muestran tres consultas representativas: una factual, una de síntesis que requiere varios fragmentos y una fuera del corpus. "
         "En cada captura se observa la respuesta, las citas [n] y el panel de fuentes.")]
 cases = [
-    ("01_consulta_factual", "Consulta factual", "Ej.: «¿Qué modelo de embeddings se recomienda para español y cuántas dimensiones tiene?»"),
-    ("02_consulta_sintesis", "Consulta de síntesis (varios fragmentos)", "Ej.: «¿Qué ventajas tiene RAG frente al fine-tuning?»"),
-    ("03_consulta_fuera_corpus", "Consulta fuera del corpus", "Ej.: «¿Quién ganó el Mundial de 2018?»  -> debe rechazar sin inventar"),
+    ("01_consulta_factual", "Consulta factual", "Ej.: «¿Qué controlan los parámetros k1 y b en BM25?»",
+     "Respuesta correcta y fiel: k1 controla la saturación del TF y b la penalización por longitud (b=1 máxima, b=0 nula). "
+     "Cita el fragmento [3] (BM25_Score.pdf, pág. 3), que es justo la diapositiva «¿Cómo se calcula?». Omite los valores "
+     "típicos (1.2-2.0 y 0.75) aunque estaban en el fragmento: el límite de 120 palabras y la pregunta, que no los pedía, "
+     "llevan a una respuesta breve. Los fragmentos [1] y [4] son ruido (títulos de diapositiva)."),
+    ("02_consulta_sintesis", "Consulta de síntesis (varios fragmentos)", "Ej.: «¿Qué es la búsqueda híbrida?»",
+     "Respuesta incompleta, caso útil para el análisis: los 4 fragmentos recuperados vienen sobre todo del survey en inglés "
+     "(«hybrid routing»), y no de la diapositiva «HYBRID SEARCH» del PDF de TF-IDF, que define la combinación de keyword search, "
+     "semantic search y metadata filtering. El LLM no inventa: responde solo con lo recuperado y lo cita [2]. El fallo está en la "
+     "recuperación (la diapositiva es corta y mezcla títulos en inglés con texto en español), el mismo patrón que baja "
+     "context_precision en Ragas. Se corregiría con búsqueda híbrida (BM25 + embeddings) o un re-ranker."),
+    ("03_consulta_fuera_corpus", "Consulta fuera del corpus", "Ej.: «¿Qué es pgvector?»  -> debe rechazar sin inventar",
+     "Comportamiento correcto: pgvector no aparece en ningún documento, así que el asistente responde con la frase de rechazo "
+     "y la interfaz muestra el aviso «Fuera del alcance de la base de conocimientos», sin fuentes y sin inventar. En la "
+     "evaluación, las 5 preguntas fuera del corpus se rechazaron en ambas configuraciones (abstención del 100 %)."),
 ]
-for i, (stem, title, hint) in enumerate(cases, 1):
+for i, (stem, title, hint, analysis) in enumerate(cases, 1):
     s += [P(f"2.{i} {title}", "h2")]
     s += image_or_placeholder([SHOTS / f"{stem}.png", SHOTS / f"{stem}.jpg"], f"Figura {i + 1}. {title}.",
-                              f"docs/screenshots/{stem}.png<br/>{hint}", max_h=8.2 * cm)
-    s += [P("<b>Análisis:</b> [Describe si la respuesta es correcta, qué fragmentos se citaron y si la abstención fue la adecuada.]")]
+                              f"docs/screenshots/{stem}.png<br/>{hint}", max_h=12 * cm)
+    s += [P(f"<b>Análisis:</b> {analysis}")]
 
 # 3 ---------------------------------------------------------------------------------------------
 s += [PageBreak(), P("3. Evaluación con Ragas", "h1"),
       P("Conjunto de evaluación: 20 preguntas (eval/eval_questions.json), cada una con respuesta de referencia: "
-        "16 con respuesta en el corpus y 4 fuera de la base de conocimientos. Las cuatro métricas de Ragas se calculan sobre las "
-        "16 respondibles; las 4 restantes miden el control de alucinaciones mediante la tasa de abstención "
+        "15 con respuesta en el corpus y 5 fuera de la base de conocimientos. Las cuatro métricas de Ragas se calculan sobre las "
+        "15 respondibles; las 5 restantes miden el control de alucinaciones mediante la tasa de abstención "
         "(Ragas no aplica ahí porque no existe un contexto correcto). Las métricas van de 0 a 1 (más alto es mejor).")]
 if after:
     ref = before or after
@@ -190,8 +202,19 @@ if after:
     s += [P("Interpretación", "h2"),
           P(f"Con la configuración final, la métrica más baja es <b>{worst}</b> ({fmt(after['ragas'].get(worst))}). "
             f"Se atribuye principalmente a la etapa de <b>{comp}</b>: {why}. Para mejorarla se propone {fix}."),
-          P("[Complementa con tu propio análisis: qué cambió entre antes y después, por qué crees que ocurrió y qué casos concretos "
-            "(ver eval/results/detalle_*.csv) explican el resultado.]", "small")]
+          P("<b>Lectura por pregunta (eval/results/detalle_*.csv).</b> Las preguntas con peor puntuación comparten causa: en q03 "
+            "(parámetros k1 y b) y q09 (limitaciones de TF-IDF) el fragmento con la respuesta no entra en el top_k porque lo desplazan "
+            "fragmentos que solo contienen el título de una diapositiva («MÉTODO BM25 - BEST MATCHING 25»), así que el asistente "
+            "rechaza correctamente por falta de contexto, pero answer_relevancy y context_recall caen a 0. En q11 (ventajas de RAG) "
+            "se recuperan párrafos del survey en inglés en lugar de la diapositiva en español que lista las ventajas (context_precision "
+            "y context_recall = 0). La generación es sólida: cuando el contexto correcto llega, faithfulness es 1.0 en casi todos los casos."),
+          P("<b>Mejoras propuestas para la recuperación:</b> (1) búsqueda híbrida BM25 + embeddings, que favorece coincidencias exactas "
+            "como «k1», «IDF» o «híbrida»; (2) unir los chunks muy cortos (títulos) con el siguiente; (3) un re-ranker cross-encoder "
+            "sobre un top_k inicial mayor, para subir precisión sin perder recall."),
+          P("<b>Nota metodológica:</b> el juez de Ragas fue openai/gpt-oss-20b (Groq, plan gratuito). En la corrida «mejora», el límite "
+            "diario de tokens dejó sin puntuar 7 de las 60 evaluaciones (q13-q15). Para comparar en igualdad de condiciones, sobre "
+            "las 12 preguntas puntuadas completas en ambas corridas: faithfulness 0.73 -> 0.77, answer_relevancy 0.58 -> 0.64, "
+            "context_precision 0.67 -> 0.65 y context_recall 0.63 -> 0.75. La tendencia es la misma que en la tabla.", "small")]
 else:
     s += callout("Resultados pendientes",
                  "Ejecuta python eval/run_eval.py (línea base y mejora), luego python eval/compare.py y vuelve a correr "
@@ -200,7 +223,12 @@ else:
                [[m, "—", "—", "—"] for m in M] + [["Abstención fuera del corpus", "—", "—", "—"]], [6, 3.6, 3.6, 3.2])
 s += [P("Iteración de mejora documentada", "h2"),
       P("Parámetros modificados: tamaño de chunk, solapamiento y top_k. Hipótesis: chunks más pequeños y más "
-        "fragmentos recuperados aumentan context_recall al aislar mejor cada idea, a costa de algo de ruido en context_precision.")]
+        "fragmentos recuperados aumentan context_recall al aislar mejor cada idea, a costa de algo de ruido en context_precision."),
+      P("<b>Resultado:</b> la hipótesis se confirma. context_recall sube (0.63 -> 0.75) y los rechazos indebidos de preguntas "
+        "que sí tienen respuesta bajan del 33 % al 13 % (q06 y q14 pasan a responderse bien). Al tener más contexto disponible, "
+        "suben también faithfulness y answer_relevancy. context_precision baja ligeramente (0.67 -> 0.65) porque 4 fragmentos "
+        "traen más ruido que 2. La abstención fuera del corpus se mantiene en 100 %, así que el aumento de contexto no generó "
+        "alucinaciones. Por eso la configuración desplegada es la de «mejora» (800 / 120 / top_k 4).")]
 
 # 4 ---------------------------------------------------------------------------------------------
 s += [PageBreak(), P("4. Interfaz de chat desplegada", "h1"),
@@ -209,14 +237,14 @@ s += [PageBreak(), P("4. Interfaz de chat desplegada", "h1"),
         "fragmento que respaldan cada respuesta y responde con un aviso claro cuando la información no está en el corpus. "
         "Las claves de API se gestionan con los Secrets de la plataforma.")]
 ui = [
-    ("04_chat_seguimiento", "Conversación con preguntas de seguimiento", "Ej.: «¿Qué es el chunking?» y luego «¿y qué solapamiento se recomienda?»"),
+    ("04_chat_seguimiento", "Conversación con preguntas de seguimiento", "Ej.: «¿Qué es BM25?» y luego «¿y en qué se diferencia de TF-IDF?»"),
     ("05_chat_fuera_corpus", "Caso fuera del alcance del corpus", "Una pregunta ajena al corpus mostrando el aviso de 'fuera del alcance'"),
     ("06_app_desplegada", "Aplicación desplegada (con la URL visible)", "Captura del navegador con la URL pública en la barra de direcciones"),
 ]
 for i, (stem, title, hint) in enumerate(ui, 1):
     s += [P(f"4.{i} {title}", "h2")]
     s += image_or_placeholder([SHOTS / f"{stem}.png", SHOTS / f"{stem}.jpg"], f"Figura {5 + i}. {title}.",
-                              f"docs/screenshots/{stem}.png<br/>{hint}", max_h=8.2 * cm)
+                              f"docs/screenshots/{stem}.png<br/>{hint}", max_h=12 * cm)
 
 # 5 ---------------------------------------------------------------------------------------------
 s += [PageBreak(), P("5. Enlaces", "h1")] + bullets([f"URL pública de la aplicación: {a.url}", f"Repositorio de GitHub: {a.repo}"])

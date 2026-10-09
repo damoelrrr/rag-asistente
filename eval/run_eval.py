@@ -38,6 +38,13 @@ def main():
     ap.add_argument("--questions", default=str(HERE / "eval_questions.json"))
     a = ap.parse_args()
 
+    # Se importa antes de ejecutar el pipeline para fallar rápido si el entorno de Ragas está roto
+    from ragas import EvaluationDataset, evaluate
+    from ragas.embeddings import LangchainEmbeddingsWrapper
+    from ragas.llms import LangchainLLMWrapper
+    from ragas.metrics import answer_relevancy, context_precision, context_recall, faithfulness
+    from ragas.run_config import RunConfig
+
     s = Settings()
     s = replace(
         s,
@@ -75,12 +82,6 @@ def main():
     false_refusal = float(in_scope.refused.mean()) if len(in_scope) else None
 
     # 3) Ragas sobre las preguntas respondibles
-    from ragas import EvaluationDataset, evaluate
-    from ragas.embeddings import LangchainEmbeddingsWrapper
-    from ragas.llms import LangchainLLMWrapper
-    from ragas.metrics import answer_relevancy, context_precision, context_recall, faithfulness
-    from ragas.run_config import RunConfig
-
     answer_relevancy.strictness = int(os.getenv("RAGAS_STRICTNESS", "3"))
     data = [
         {
@@ -96,7 +97,7 @@ def main():
         metrics=[faithfulness, answer_relevancy, context_precision, context_recall],
         llm=LangchainLLMWrapper(get_chat_model(s, judge=True, max_tokens=2000)),
         embeddings=LangchainEmbeddingsWrapper(as_langchain_embeddings(pipe.embedder)),
-        run_config=RunConfig(max_workers=4, timeout=180),
+        run_config=RunConfig(max_workers=int(os.getenv("RAGAS_WORKERS", "4")), timeout=300, max_wait=90),
     )
     rdf = result.to_pandas()
     colmap = {}

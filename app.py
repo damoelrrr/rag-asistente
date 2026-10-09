@@ -20,7 +20,7 @@ st.set_page_config(page_title="Asistente RAG", page_icon="🧠", layout="centere
 
 # Los secrets de la nube se pasan a variables de entorno (las claves NUNCA van en el repositorio)
 try:
-    for _k in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "LLM_PROVIDER", "LLM_MODEL", "TOP_K", "MAX_DISTANCE"):
+    for _k in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GROQ_API_KEY", "LLM_PROVIDER", "LLM_MODEL", "TOP_K", "MAX_DISTANCE"):
         if _k in st.secrets:
             os.environ.setdefault(_k, str(st.secrets[_k]))
 except Exception:  # sin secrets.toml en local: se usa .env
@@ -79,10 +79,10 @@ section[data-testid="stSidebar"] { background: #ffffff; border-right: 1px solid 
 )
 
 SUGGESTIONS = [
-    "¿Qué es RAG y cómo funciona?",
-    "¿Qué parámetros importan al hacer chunking?",
-    "¿Qué diferencia hay entre Chroma y FAISS?",
-    "¿Qué mide la métrica faithfulness?",
+    "¿Qué es RAG y qué ventajas tiene?",
+    "¿En qué se diferencia BM25 de TF-IDF?",
+    "¿Qué es la búsqueda híbrida?",
+    "¿Cuáles son los componentes de un buen prompt?",
 ]
 
 
@@ -173,7 +173,7 @@ st.markdown(
     """
 <div class="hero">
   <h1>Asistente experto en RAG</h1>
-  <p>Pregúntame sobre RAG, chunking, embeddings, bases vectoriales, evaluación con Ragas y prompting.
+  <p>Pregúntame sobre RAG, recuperación de información (TF-IDF, BM25, búsqueda híbrida), ingeniería de prompts y LLMs locales.
   Cada respuesta incluye las fuentes en las que se apoya.</p>
   <span class="pill">Conversacional</span><span class="pill">Con fuentes citadas</span><span class="pill">Sin inventar</span>
 </div>
