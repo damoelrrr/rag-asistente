@@ -11,6 +11,7 @@ try:  # noqa: SIM105
 except ImportError:
     pass
 
+import hashlib
 import html
 import os
 
@@ -22,7 +23,7 @@ st.set_page_config(page_title="Asistente RAG", page_icon="🧠", layout="centere
 try:
     for _k in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GROQ_API_KEY", "LLM_PROVIDER", "LLM_MODEL", "TOP_K", "MAX_DISTANCE"):
         if _k in st.secrets:
-            os.environ.setdefault(_k, str(st.secrets[_k]))
+            os.environ[_k] = str(st.secrets[_k]).strip()  # los secrets mandan sobre valores previos
 except Exception:  # sin secrets.toml en local: se usa .env
     pass
 
@@ -88,7 +89,8 @@ SUGGESTIONS = [
 
 # ------------------------------------------------------------------ Recursos ----
 @st.cache_resource(show_spinner="Preparando la base de conocimientos…")
-def load_pipeline() -> tuple[RAGPipeline, int]:
+def load_pipeline(llm_signature: str) -> tuple[RAGPipeline, int]:
+    """llm_signature cambia si cambian proveedor, modelo o clave: así se crea un cliente nuevo sin reiniciar."""
     pipe = RAGPipeline(Settings())
     return pipe, pipe.ensure_index()
 
@@ -150,7 +152,9 @@ if not _key_ok(settings.llm_provider.lower()):
     )
     st.stop()
 
-pipe, n_chunks = load_pipeline()
+_provider = settings.llm_provider.lower()
+_key = os.getenv({"anthropic": "ANTHROPIC_API_KEY", "groq": "GROQ_API_KEY"}.get(_provider, "OPENAI_API_KEY"), "")
+pipe, n_chunks = load_pipeline(f"{_provider}|{settings.llm_model}|{hashlib.sha256(_key.encode()).hexdigest()[:12]}")
 
 # ------------------------------------------------------------------ Barra lateral ----
 with st.sidebar:
