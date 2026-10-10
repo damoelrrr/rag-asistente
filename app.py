@@ -1,4 +1,4 @@
-"""Interfaz de chat (Streamlit) del Asistente Experto RAG.
+"""Interfaz de chat (Streamlit) del Tutor Académico RAG.
 
 Ejecutar en local:  streamlit run app.py
 """
@@ -13,15 +13,17 @@ except ImportError:
 
 import hashlib
 import html
+import json
 import os
+import re
 
 import streamlit as st
 
-st.set_page_config(page_title="Asistente RAG", page_icon="🧠", layout="centered", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Tutor IA", page_icon="🎓", layout="centered", initial_sidebar_state="expanded")
 
 # Los secrets de la nube se pasan a variables de entorno (las claves NUNCA van en el repositorio)
 try:
-    for _k in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GROQ_API_KEY", "LLM_PROVIDER", "LLM_MODEL", "TOP_K", "MAX_DISTANCE"):
+    for _k in ("GROQ_API_KEY", "GEMINI_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "LLM_PROVIDER", "LLM_MODEL", "LLM_BASE_URL", "TOP_K", "MAX_DISTANCE"):
         if _k in st.secrets:
             os.environ[_k] = str(st.secrets[_k]).strip()  # los secrets mandan sobre valores previos
 except Exception:  # sin secrets.toml en local: se usa .env
@@ -82,8 +84,8 @@ section[data-testid="stSidebar"] { background: #ffffff; border-right: 1px solid 
 SUGGESTIONS = [
     "¿Qué es RAG y qué ventajas tiene?",
     "¿En qué se diferencia BM25 de TF-IDF?",
-    "¿Qué es la búsqueda híbrida?",
-    "¿Cuáles son los componentes de un buen prompt?",
+    "Hazme un quiz de 3 preguntas sobre prompt engineering",
+    "No entiendo nada: ¿qué es la búsqueda híbrida?",
 ]
 
 
@@ -96,12 +98,32 @@ def load_pipeline(llm_signature: str) -> tuple[RAGPipeline, int]:
 
 
 def _key_ok(provider: str) -> bool:
-    if provider == "anthropic":
-        return bool(os.getenv("ANTHROPIC_API_KEY"))
-    elif provider == "groq":
-        return bool(os.getenv("GROQ_API_KEY"))
-    else:
-        return bool(os.getenv("OPENAI_API_KEY"))
+    env = {"anthropic": "ANTHROPIC_API_KEY", "groq": "GROQ_API_KEY", "gemini": "GEMINI_API_KEY", "openai": "OPENAI_API_KEY"}.get(provider)
+    return True if provider == "ollama" else bool(env and os.getenv(env))
+
+
+def parse_quiz(text: str):
+    """Si la respuesta es un quiz en JSON (formato del Avance 1) devuelve el dict; si no, None."""
+    t = re.sub(r"^```(?:json)?|```$", "", text.strip(), flags=re.M).strip()
+    if not t.startswith("{"):
+        return None
+    try:
+        d = json.loads(t)
+    except ValueError:
+        return None
+    return d if isinstance(d, dict) and isinstance(d.get("preguntas"), list) else None
+
+
+def render_quiz(d: dict) -> None:
+    st.markdown(f"**📝 Quiz: {d.get('tema', 'Repaso')}**")
+    for q in d["preguntas"]:
+        st.markdown(f"**{q.get('id', '')}. {q.get('enunciado', '')}**")
+        for o in q.get("opciones", []):
+            st.markdown(f"- {o}")
+        with st.expander("Ver respuesta"):
+            st.markdown(f"✅ **{q.get('respuesta_correcta', '')}**")
+            if q.get("fuente"):
+                st.caption(f"Fuente: {q['fuente']}")
 
 
 def sources_html(sources: list[dict]) -> str:
@@ -130,7 +152,8 @@ def render_message(m: dict) -> None:
     if m["role"] == "assistant" and m.get("refused"):
         st.markdown(notice_html(m["content"]), unsafe_allow_html=True)
         return
-    st.markdown(m["content"])
+    quiz = parse_quiz(m["content"]) if m["role"] == "assistant" else None
+    render_quiz(quiz) if quiz else st.markdown(m["content"])
     if m.get("sources"):
         with st.expander(f"📚 Fuentes ({len(m['sources'])})"):
             if m.get("standalone") and m["standalone"] != m.get("question"):
@@ -147,19 +170,21 @@ if "pending" not in st.session_state:
 settings = Settings()
 if not _key_ok(settings.llm_provider.lower()):
     st.error(
-        f"Falta la clave de API del proveedor **{settings.llm_provider}**. En local créala en `.env` "
-        "(ver `.env.example`); en la nube, agrégala en *Secrets* de la plataforma."
+        f"Falta la clave del proveedor **{settings.llm_provider}**. Consíguela gratis en https://console.groq.com/keys "
+        "y pégala en el archivo `.env` (ver `.env.example`); en la nube, agrégala en *Secrets*. "
+        "Si prefieres no usar claves, instala Ollama y pon `LLM_PROVIDER=ollama` en `.env`."
     )
     st.stop()
 
 _provider = settings.llm_provider.lower()
-_key = os.getenv({"anthropic": "ANTHROPIC_API_KEY", "groq": "GROQ_API_KEY"}.get(_provider, "OPENAI_API_KEY"), "")
+_env = {"anthropic": "ANTHROPIC_API_KEY", "groq": "GROQ_API_KEY", "gemini": "GEMINI_API_KEY"}.get(_provider, "OPENAI_API_KEY")
+_key = os.getenv(_env, "")
 pipe, n_chunks = load_pipeline(f"{_provider}|{settings.llm_model}|{hashlib.sha256(_key.encode()).hexdigest()[:12]}")
 
 # ------------------------------------------------------------------ Barra lateral ----
 with st.sidebar:
-    st.markdown("### 🧠 Asistente RAG")
-    st.caption("Responde únicamente con lo que dicen los documentos de la base de conocimientos y cita sus fuentes.")
+    st.markdown("### 🎓 Tutor IA")
+    st.caption("Te guía con preguntas (método socrático) usando solo el material de la asignatura y muestra sus fuentes.")
     st.markdown("**Documentos indexados**")
     for f in sorted(p.name for p in settings.corpus_dir.glob("*") if p.is_file()):
         st.markdown(f"<div class='side-doc'>📄 {html.escape(f)}</div>", unsafe_allow_html=True)
@@ -176,10 +201,11 @@ with st.sidebar:
 st.markdown(
     """
 <div class="hero">
-  <h1>Asistente experto en RAG</h1>
-  <p>Pregúntame sobre RAG, recuperación de información (TF-IDF, BM25, búsqueda híbrida), ingeniería de prompts y LLMs locales.
-  Cada respuesta incluye las fuentes en las que se apoya.</p>
-  <span class="pill">Conversacional</span><span class="pill">Con fuentes citadas</span><span class="pill">Sin inventar</span>
+  <h1>Tutor de Desarrollo de Aplicaciones con IA</h1>
+  <p>No te daré la respuesta hecha: te haré las preguntas que te ayuden a llegar a ella (RAG, TF-IDF, BM25, búsqueda híbrida,
+  ingeniería de prompts y LLMs locales). Trabajo solo con el material de la asignatura y te muestro en qué fragmentos me apoyo.
+  También puedo prepararte un quiz de repaso.</p>
+  <span class="pill">Método socrático</span><span class="pill">Con fuentes</span><span class="pill">Sin inventar</span>
 </div>
 """,
     unsafe_allow_html=True,
@@ -195,7 +221,7 @@ if not st.session_state.messages:
             st.rerun()
 
 for m in st.session_state.messages:
-    with st.chat_message(m["role"], avatar="🧑‍🎓" if m["role"] == "user" else "🧠"):
+    with st.chat_message(m["role"], avatar="🧑‍🎓" if m["role"] == "user" else "🎓"):
         render_message(m)
 
 # ------------------------------------------------------------------ Entrada ----
@@ -209,7 +235,7 @@ if prompt:
         st.markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    with st.chat_message("assistant", avatar="🧠"):
+    with st.chat_message("assistant", avatar="🎓"):
         try:
             with st.spinner("Buscando en la base de conocimientos…"):
                 prep = pipe.prepare(prompt, history, top_k)
@@ -232,12 +258,13 @@ if prompt:
         msg = {"role": "assistant", "content": ans.text, "sources": sources, "refused": ans.refused,
                "standalone": ans.standalone, "question": prompt}
         st.session_state.messages.append(msg)
-        if ans.refused and prep.messages is not None:
-            pass  # el LLM rechazó por sí mismo: se redibuja abajo con el aviso estilizado
+        redraw = (ans.refused and prep.messages is not None) or parse_quiz(ans.text) is not None
+        if redraw:
+            pass  # rechazo del LLM o quiz JSON: se redibuja abajo con su formato estilizado
         elif sources:
             with st.expander(f"📚 Fuentes ({len(sources)})"):
                 if ans.standalone != prompt:
                     st.caption(f"🔎 Búsqueda realizada: «{ans.standalone}»")
                 st.markdown(sources_html(sources), unsafe_allow_html=True)
-    if ans.refused and prep.messages is not None:
+    if redraw:
         st.rerun()
