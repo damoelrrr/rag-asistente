@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from typing import Iterator
 
 from .config import Settings
+from .catalog import catalog_answer, is_catalog_question
 from .embeddings import Embedder
 from .ingest import build_chunks, load_corpus
 from .llm import get_chat_model, text_of
@@ -20,7 +21,8 @@ class Prepared:
     standalone: str
     hits: list[Hit]  # los que superan el umbral de distancia
     raw_hits: list[Hit]  # todo lo recuperado (para evaluación)
-    messages: list | None  # None => no hay contexto pertinente => rechazo sin llamar al LLM
+    messages: list | None  # contexto para generar; None si no hay contexto o hay respuesta de catálogo
+    direct_answer: str | None = None  # catálogo verificable, sin generación del LLM
 
 
 @dataclass
@@ -73,7 +75,7 @@ class RAGPipeline:
     # ---------- Recuperación ----------
     def retrieve(self, query: str, top_k: int | None = None) -> tuple[list[Hit], list[Hit]]:
         raw = self.store.search(query, top_k or self.s.top_k)
-        kept = [h for h in raw if h.distance <= self.s.max_distance]
+        kept = [h for h in raw if h.distance is not None and h.distance <= self.s.max_distance]
         for i, h in enumerate(kept, 1):  # renumera [1..n] solo con los fragmentos usados
             h.n = i
         return kept, raw
@@ -81,12 +83,18 @@ class RAGPipeline:
     # ---------- Generación ----------
     def prepare(self, question: str, history: list[dict] | None = None, top_k: int | None = None) -> Prepared:
         history = history or []
+        if is_catalog_question(question):
+            documents = self.store.catalogue()
+            return Prepared(question, question, documents, documents, None, catalog_answer(documents))
         standalone = self.rewrite(question, history)
         hits, raw = self.retrieve(standalone, top_k)
         messages = build_messages(standalone, hits, self._history_tail(history)) if hits else None
         return Prepared(question, standalone, hits, raw, messages)
 
     def stream(self, prep: Prepared) -> Iterator[str]:
+        if prep.direct_answer is not None:
+            yield prep.direct_answer
+            return
         if prep.messages is None:
             yield REFUSAL
             return
@@ -98,7 +106,10 @@ class RAGPipeline:
     def answer(self, question: str, history: list[dict] | None = None, top_k: int | None = None) -> Answer:
         t0 = time.time()
         prep = self.prepare(question, history, top_k)
-        text = REFUSAL if prep.messages is None else text_of(self.llm.invoke(prep.messages).content).strip()
+        if prep.direct_answer is not None:
+            text = prep.direct_answer
+        else:
+            text = REFUSAL if prep.messages is None else text_of(self.llm.invoke(prep.messages).content).strip()
         return self.finish(prep, text, time.time() - t0)
 
     @staticmethod

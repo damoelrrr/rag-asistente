@@ -36,6 +36,7 @@ except Exception:  # sin secrets.toml en local: se usa .env
     pass
 
 from rag.config import Settings  # noqa: E402
+from rag.catalog import DOCUMENT_TITLES  # noqa: E402
 from rag.pipeline import RAGPipeline  # noqa: E402
 from rag.prompts import REFUSAL  # noqa: E402
 
@@ -64,17 +65,6 @@ SUGGESTIONS = [
     ("Pon a prueba lo que sabes", "Un pequeño quiz, un gran avance.", "Hazme un quiz de 3 preguntas sobre prompt engineering", "quiz"),
     ("Hazlo más sencillo", "Empieza desde lo esencial.", "No entiendo nada: ¿qué es la búsqueda híbrida?", "auto_awesome"),
 ]
-
-DOCUMENT_TITLES = {
-    "2312.10997v5.pdf": "Retrieval-Augmented Generation for LLMs",
-    "3 BM25_Score.pdf": "BM25 · Relevancia en la búsqueda",
-    "Ejecucin_de_LLMs_con_Ollama.pdf": "LLMs locales con Ollama",
-    "El_Mtodo_Socrtico_El_Arte_de_Preguntar (3).pdf": "El método socrático · El arte de preguntar",
-    "Introducción a RAG.pdf": "Introducción a RAG",
-    "Introducción_Ingeniería_Prompt (3).pdf": "Introducción a la ingeniería de prompts",
-    "TF-IDF_Keyword_search.pdf": "TF-IDF · Búsqueda por palabras clave",
-}
-
 
 def open_question(question: str) -> None:
     st.session_state.pending = question
@@ -124,9 +114,10 @@ def sources_html(sources: list[dict]) -> str:
         where = s["source"] + (f" · pág. {s['page']}" if s.get("page") else "") + f" · fragmento {s['chunk_index']}"
         cls = "src cited" if s["cited"] else "src"
         tag = " · citada en la respuesta" if s["cited"] else ""
+        similarity = f"{s['similarity']:.0%} similitud" if s["similarity"] is not None else "Documento indexado"
         out.append(
             f'<div class="{cls}"><div class="meta"><span class="badge">{s["n"]}</span>'
-            f'<span>{html.escape(where)}{tag}</span><span class="sim">{s["similarity"]:.0%} similitud</span></div>'
+            f'<span>{html.escape(where)}{tag}</span><span class="sim">{similarity}</span></div>'
             f'<div class="txt">{html.escape(s["text"])}</div></div>'
         )
     return "".join(out)
@@ -176,7 +167,7 @@ _env = {"anthropic": "ANTHROPIC_API_KEY", "groq": "GROQ_API_KEY", "gemini": "GEM
 _key = os.getenv(_env, "")
 _rag_dir = Path(__file__).parent / "rag"
 _retrieval_signature = hashlib.sha256(b"".join(
-    (_rag_dir / name).read_bytes() for name in ("pipeline.py", "vectorstore.py", "retrieval.py", "prompts.py")
+    (_rag_dir / name).read_bytes() for name in ("pipeline.py", "vectorstore.py", "retrieval.py", "prompts.py", "catalog.py")
 )).hexdigest()[:12]
 pipe, n_chunks = load_pipeline(
     f"{_provider}|{settings.llm_model}|{hashlib.sha256(_key.encode()).hexdigest()[:12]}", _retrieval_signature,
@@ -311,7 +302,10 @@ if prompt:
         try:
             with st.spinner("Buscando en la base de conocimientos…"):
                 prep = pipe.prepare(prompt, history, top_k)
-            if prep.messages is None:  # nada pertinente: se rechaza sin gastar una llamada al LLM
+            if prep.direct_answer is not None:
+                text = prep.direct_answer
+                st.markdown(text)
+            elif prep.messages is None:  # nada pertinente: se rechaza sin gastar una llamada al LLM
                 text = REFUSAL
                 st.markdown(notice_html(text), unsafe_allow_html=True)
             else:

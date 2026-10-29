@@ -15,11 +15,11 @@ class Hit:
     source: str
     page: int | None
     chunk_index: int
-    distance: float  # distancia coseno (menor = más parecido)
+    distance: float | None  # None en el catálogo: no hubo búsqueda por similitud
 
     @property
-    def similarity(self) -> float:
-        return max(0.0, 1.0 - self.distance)
+    def similarity(self) -> float | None:
+        return None if self.distance is None else max(0.0, 1.0 - self.distance)
 
 
 class VectorStore:
@@ -53,6 +53,20 @@ class VectorStore:
                     for c in part
                 ],
             )
+
+    def catalogue(self) -> list[Hit]:
+        """Una fuente por documento realmente indexado, sin atribuirle similitud semántica."""
+        corpus = self.col.get(include=["documents", "metadatas"])
+        grouped: dict[str, list[tuple[str, dict]]] = {}
+        for text, meta in zip(corpus["documents"], corpus["metadatas"]):
+            grouped.setdefault(meta["source"], []).append((text, meta))
+        hits = []
+        for n, source in enumerate(sorted(grouped), 1):
+            passages = sorted(grouped[source], key=lambda item: item[1]["chunk_index"])
+            text, meta = next((item for item in passages if has_content(item[0])), passages[0])
+            page = meta.get("page", -1)
+            hits.append(Hit(n, text, source, None if page == -1 else page, meta["chunk_index"], None))
+        return hits
 
     def search(self, query: str, k: int) -> list[Hit]:
         count = self.count()

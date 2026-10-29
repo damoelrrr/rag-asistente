@@ -4,6 +4,8 @@ Asistente conversacional que responde **únicamente** con la información de una
 
 En las consultas normales, primero explica la respuesta con citas del material recuperado y después hace una sola pregunta de seguimiento. Los quizzes y otras herramientas de estudio conservan el formato solicitado.
 
+Las preguntas sobre los temas disponibles o las fuentes del tutor se responden directamente con el catálogo completo del índice, antes de reescribir la consulta o llamar al LLM. Los ejemplos dentro de un PDF no se presentan como temas adicionales del curso.
+
 > **URL pública de la aplicación:** `https://TU-APP.streamlit.app`  ← *(reemplazar tras el despliegue)*
 > **Repositorio:** <https://github.com/damoelrrr/rag-asistente>
 
