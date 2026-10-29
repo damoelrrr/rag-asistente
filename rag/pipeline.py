@@ -10,7 +10,7 @@ from .config import Settings
 from .embeddings import Embedder
 from .ingest import build_chunks, load_corpus
 from .llm import get_chat_model, text_of
-from .prompts import CONDENSE_PROMPT, REFUSAL, build_messages
+from .prompts import CONDENSE_PROMPT, REFUSAL, build_messages, is_refusal
 from .vectorstore import Hit, VectorStore
 
 
@@ -32,10 +32,6 @@ class Answer:
     refused: bool
     cited: list[int] = field(default_factory=list)
     seconds: float = 0.0
-
-
-def is_refusal(text: str) -> bool:
-    return text.strip().lower().startswith(REFUSAL[:30].lower())
 
 
 class RAGPipeline:
@@ -109,4 +105,4 @@ class RAGPipeline:
     def finish(prep: Prepared, text: str, seconds: float = 0.0) -> Answer:
         refused = is_refusal(text)
         cited = sorted({int(n) for n in re.findall(r"\[(\d+)\]", text)}) if not refused else []
-        return Answer(text, prep.standalone, [] if refused else prep.hits, prep.raw_hits, refused, cited, seconds)
+        return Answer(text, prep.standalone, prep.hits, prep.raw_hits, refused, cited, seconds)

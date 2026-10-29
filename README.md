@@ -37,7 +37,7 @@ Asistente conversacional que responde **únicamente** con la información de una
 | Chunking | 800 caracteres, solape 120 (15 %), corte recursivo párrafo → línea → frase → palabra | Suficiente contexto para una idea completa sin mezclar temas; el solape evita cortar ideas en el límite |
 | Embeddings | `paraphrase-multilingual-MiniLM-L12-v2` (384 dim) | Multilingüe (español), ligero, corre local y no envía texto a terceros |
 | Índice | Chroma persistente, distancia coseno | Open source, embebido, guarda texto + metadatos para citar |
-| Recuperación | Similitud coseno, `top_k=4`, descarta fragmentos con distancia > 0.75 | El umbral evita responder con contexto irrelevante (control de alucinaciones) |
+| Recuperación | Búsqueda híbrida: embeddings + BM25, expansión de siglas y fusión de rankings; `top_k=4`, distancia coseno máxima 0.75 | Recupera candidatos adicionales, descarta títulos aislados y bloques bibliográficos, y selecciona hasta 4 fragmentos para el modelo |
 | Generación | LLM vía LangChain (Groq `openai/gpt-oss-120b` por defecto; también Anthropic u OpenAI), temperatura 0.1 | Respuestas estables y fieles al contexto |
 | Conversación | Reescritura de la pregunta con el historial antes de buscar | Permite preguntas de seguimiento ("¿y su ventaja?") |
 
@@ -56,6 +56,8 @@ streamlit run app.py
 
 La primera ejecución descarga el modelo de embeddings (~470 MB). Abre `http://localhost:8501`.
 
+Un **chunk** es un fragmento del documento, de hasta 800 caracteres y con hasta 120 caracteres de solapamiento. Hay 269 en el índice del corpus actual. Con `top_k=4`, la búsqueda examina al menos 32 candidatos (si el corpus tiene suficientes) y envía al modelo hasta 4 fragmentos que pasan el filtro de relevancia. La barra lateral permite cambiar ese máximo entre 1 y 8. Una respuesta sin contexto suficiente conserva las fuentes consultadas para poder inspeccionar lo que se recuperó.
+
 ## 3. Evaluación con Ragas
 
 El conjunto de evaluación está en `eval/eval_questions.json`: **20 preguntas con respuesta de referencia**, 15 con respuesta en el corpus y 5 fuera de él (pgvector, precio de GPT-4o, Mundial 2018, CNN con PyTorch, Ley 1581) para medir el control de alucinaciones.
@@ -73,6 +75,8 @@ LLM de generación: `openai/gpt-oss-120b`. Juez de Ragas: `openai/gpt-oss-20b` (
 
 ### Resultados
 
+Estas métricas corresponden a las corridas guardadas `base` y `mejora`, anteriores a la búsqueda híbrida. Deben recalcularse para evaluar la recuperación actual.
+
 | Métrica | Base (1000 / 100 / k=2) | Mejora (800 / 120 / k=4) | Cambio |
 |---|---|---|---|
 | faithfulness | 0.59 | 0.79 | +0.20 |
@@ -88,7 +92,7 @@ LLM de generación: `openai/gpt-oss-120b`. Juez de Ragas: `openai/gpt-oss-20b` (
 - **Métrica más baja en la versión final: `context_precision` (0.65), que se atribuye a la recuperación.** Los fragmentos que solo contienen el título de una diapositiva ("MÉTODO BM25 - BEST MATCHING 25") y los párrafos del survey en inglés ocupan puestos del top_k y desplazan la diapositiva en español que tiene la respuesta (q03, q09, q11).
 - **La generación es sólida.** Cuando llega el contexto correcto, faithfulness es 1.0 en casi todos los casos, y el asistente rechazó el 100 % de las preguntas fuera del corpus.
 - **La iteración confirma la hipótesis.** Con más fragmentos y más pequeños sube context_recall, y las preguntas que antes se rechazaban por falta de contexto (q06, q14) ahora se responden. A cambio, entra algo más de ruido (precision −0.02).
-- **Siguientes mejoras:** búsqueda híbrida BM25 + embeddings, unir los chunks muy cortos y añadir un re-ranker cross-encoder.
+- **Siguientes mejoras:** enriquecer los fragmentos cortos con contexto adyacente y añadir un re-ranker cross-encoder. La búsqueda híbrida BM25 + embeddings ya está implementada.
 - **Nota:** en la corrida `mejora`, el límite diario de tokens de Groq dejó sin puntuar 7 de 60 evaluaciones (q13–q15). Comparando solo las 12 preguntas puntuadas completas en ambas corridas, la tendencia es la misma (recall 0.63 → 0.75, faithfulness 0.73 → 0.77, relevancy 0.58 → 0.64, precision 0.67 → 0.65).
 
 Archivos: `eval/results/summary_<tag>.json`, `detalle_<tag>.csv` (respuesta, fragmentos y métricas por pregunta), `comparison.csv` y `docs/ragas_comparison.png`.

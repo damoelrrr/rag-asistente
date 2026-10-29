@@ -14,8 +14,8 @@ Q3 = '"""'
 
 # Respuesta cuando NO se recupera material pertinente (se devuelve sin gastar una llamada al LLM)
 REFUSAL = (
-    "Esa es una gran pregunta, pero esto no está en el material que tengo de Desarrollo de Aplicaciones con IA, "
-    "así que no puedo guiarte en eso. ¿Hay algo del temario de la clase en lo que te pueda ayudar ahora?"
+    "No encontré suficiente información en los fragmentos recuperados para responder con las fuentes del curso. "
+    "¿Podrías reformular tu pregunta o indicar qué documento quieres consultar?"
 )
 _REFUSAL_MARKERS = ("no está en el material que tengo", "fuera del contenido", "no tengo material")
 
@@ -92,7 +92,12 @@ def _user_turn(question: str, hits: list[Hit]) -> str:
 
 def is_refusal(text: str) -> bool:
     t = text.strip().lower()
-    return len(t) < 500 and any(m in t for m in _REFUSAL_MARKERS)
+    return t.startswith(REFUSAL[:60].lower()) or (
+        len(t) < 500 and any(m in t for m in (
+            *_REFUSAL_MARKERS, "no encontré esa información", "no encontré información",
+            "no encontré suficiente información", "no encuentro esa información",
+        ))
+    )
 
 
 # ---------------- Ejemplos Few-Shot (los 6 casos del Avance 1) ----------------

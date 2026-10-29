@@ -16,10 +16,16 @@ import html
 import json
 import os
 import re
+from pathlib import Path
 
 import streamlit as st
 
-st.set_page_config(page_title="Tutor IA", page_icon="🎓", layout="centered", initial_sidebar_state="expanded")
+st.set_page_config(
+    page_title="Tutor IA · Tu espacio de estudio",
+    page_icon=":material/auto_awesome:",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
 # Los secrets de la nube se pasan a variables de entorno (las claves NUNCA van en el repositorio)
 try:
@@ -33,66 +39,52 @@ from rag.config import Settings  # noqa: E402
 from rag.pipeline import RAGPipeline  # noqa: E402
 from rag.prompts import REFUSAL  # noqa: E402
 
-# ------------------------------------------------------------------ Estilos (principios de UX) ----
-# Jerarquía visual clara, mucho espacio en blanco, un solo color de acento, contraste AA,
-# estados vacíos con ejemplos, feedback inmediato (spinner + streaming) y divulgación progresiva
-# (las fuentes están plegadas hasta que el usuario las quiere ver).
+# La presentación vive aparte para mantener el flujo RAG independiente del diseño.
 st.markdown(
-    """
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-html, body, [class*="css"], .stMarkdown, button, input, textarea { font-family: 'Inter', sans-serif !important; }
-#MainMenu, footer { visibility: hidden; }
-.block-container { padding-top: 1.6rem; max-width: 780px; }
-
-.hero { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: #fff; border-radius: 20px;
-        padding: 26px 28px; margin-bottom: 18px; box-shadow: 0 10px 30px rgba(79,70,229,.25); }
-.hero h1 { font-size: 1.55rem; margin: 0 0 6px 0; font-weight: 700; color: #fff; }
-.hero p { margin: 0; opacity: .92; font-size: .97rem; line-height: 1.5; color: #fff; }
-.hero .pill { display:inline-block; background: rgba(255,255,255,.18); border-radius: 999px; padding: 3px 11px;
-              font-size: .74rem; margin: 12px 6px 0 0; }
-
-.empty-title { font-weight: 600; color: #1e2433; margin: 6px 0 10px 0; }
-
-div[data-testid="stChatMessage"] { background: #fff; border: 1px solid #e8eaf3; border-radius: 16px;
-        padding: 14px 18px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(20,24,40,.04); }
-div[data-testid="stChatMessage"] p { line-height: 1.62; }
-
-.stButton > button { border-radius: 12px; border: 1px solid #dfe2f0; background: #fff; color: #1e2433;
-        text-align: left; padding: 10px 14px; font-weight: 500; transition: all .15s ease; width: 100%; }
-.stButton > button:hover { border-color: #4f46e5; color: #4f46e5; background: #f4f3ff; transform: translateY(-1px); }
-
-.src { border: 1px solid #e8eaf3; border-left: 4px solid #cfd3e6; border-radius: 10px; padding: 10px 14px;
-       margin: 8px 0; background: #fafbff; }
-.src.cited { border-left-color: #4f46e5; background: #f4f3ff; }
-.src .meta { font-size: .78rem; color: #596079; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.src .badge { background: #4f46e5; color: #fff; border-radius: 6px; padding: 1px 8px; font-weight: 600; font-size: .75rem; }
-.src .sim { margin-left: auto; font-weight: 600; color: #3a3f55; }
-.src .txt { font-size: .86rem; color: #2b3045; margin-top: 6px; line-height: 1.5; }
-
-.notice { background: #fff8eb; border: 1px solid #fde1a8; border-left: 4px solid #f59e0b; border-radius: 12px;
-          padding: 12px 16px; color: #6b4a0b; font-size: .95rem; line-height: 1.5; }
-.notice b { color: #4a3207; }
-
-section[data-testid="stSidebar"] { background: #ffffff; border-right: 1px solid #e8eaf3; }
-.side-doc { font-size: .84rem; color: #3a3f55; padding: 3px 0; }
-</style>
-""",
+    f"<style>{(Path(__file__).parent / 'assets' / 'chat.css').read_text()}</style>",
     unsafe_allow_html=True,
 )
 
+ICONS = {
+    "spark": '<path d="m12 3 2.6 6.4L21 12l-6.4 2.6L12 21l-2.6-6.4L3 12l6.4-2.6Z"/><path d="m20 2 .6 1.4L22 4l-1.4.6L20 6l-.6-1.4L18 4l1.4-.6Z"/>',
+    "book": '<path d="M12 5v15M3 4c3-1 6 0 9 2 3-2 6-3 9-2v14c-3-1-6 0-9 2-3-2-6-3-9-2Z"/>',
+    "shield": '<path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6Z"/><path d="m8 12 3 3 5-6"/>',
+    "source": '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>',
+    "lock": '<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/>',
+}
+
+
+def icon(name: str) -> str:
+    return f'<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true">{ICONS[name]}</svg>'
+
+
 SUGGESTIONS = [
-    "¿Qué es RAG y qué ventajas tiene?",
-    "¿En qué se diferencia BM25 de TF-IDF?",
-    "Hazme un quiz de 3 preguntas sobre prompt engineering",
-    "No entiendo nada: ¿qué es la búsqueda híbrida?",
+    ("Explora un concepto", "Entiende RAG, paso a paso.", "¿Qué es RAG y qué ventajas tiene?", "lightbulb"),
+    ("Conecta las ideas", "Compara BM25 y TF-IDF.", "¿En qué se diferencia BM25 de TF-IDF?", "hub"),
+    ("Pon a prueba lo que sabes", "Un pequeño quiz, un gran avance.", "Hazme un quiz de 3 preguntas sobre prompt engineering", "quiz"),
+    ("Hazlo más sencillo", "Empieza desde lo esencial.", "No entiendo nada: ¿qué es la búsqueda híbrida?", "auto_awesome"),
 ]
+
+DOCUMENT_TITLES = {
+    "2312.10997v5.pdf": "Retrieval-Augmented Generation for LLMs",
+    "3 BM25_Score.pdf": "BM25 · Relevancia en la búsqueda",
+    "Ejecucin_de_LLMs_con_Ollama.pdf": "LLMs locales con Ollama",
+    "El_Mtodo_Socrtico_El_Arte_de_Preguntar (3).pdf": "El método socrático · El arte de preguntar",
+    "Introducción a RAG.pdf": "Introducción a RAG",
+    "Introducción_Ingeniería_Prompt (3).pdf": "Introducción a la ingeniería de prompts",
+    "TF-IDF_Keyword_search.pdf": "TF-IDF · Búsqueda por palabras clave",
+}
+
+
+def open_question(question: str) -> None:
+    st.session_state.pending = question
+    st.session_state.view = "chat"
 
 
 # ------------------------------------------------------------------ Recursos ----
 @st.cache_resource(show_spinner="Preparando la base de conocimientos…")
-def load_pipeline(llm_signature: str) -> tuple[RAGPipeline, int]:
-    """llm_signature cambia si cambian proveedor, modelo o clave: así se crea un cliente nuevo sin reiniciar."""
+def load_pipeline(llm_signature: str, retrieval_signature: str) -> tuple[RAGPipeline, int]:
+    """Renueva el recurso si cambia el LLM o el código de recuperación y sus prompts."""
     pipe = RAGPipeline(Settings())
     return pipe, pipe.ensure_index()
 
@@ -142,20 +134,23 @@ def sources_html(sources: list[dict]) -> str:
 
 def notice_html(text: str) -> str:
     return (
-        f'<div class="notice"><b>Fuera del alcance de la base de conocimientos</b><br>{html.escape(text)}<br>'
-        "<span style='font-size:.88rem'>Prueba reformulando la pregunta o consulta uno de los temas "
-        "de la barra lateral.</span></div>"
+        f'<div class="notice"><b>No encontré contexto suficiente para responder</b><br>{html.escape(text)}<br>'
+        "<span style='font-size:.88rem'>Revisa las fuentes consultadas, reformula tu pregunta "
+        "o visita la biblioteca del curso.</span></div>"
     )
 
 
 def render_message(m: dict) -> None:
     if m["role"] == "assistant" and m.get("refused"):
         st.markdown(notice_html(m["content"]), unsafe_allow_html=True)
-        return
-    quiz = parse_quiz(m["content"]) if m["role"] == "assistant" else None
-    render_quiz(quiz) if quiz else st.markdown(m["content"])
+    else:
+        quiz = parse_quiz(m["content"]) if m["role"] == "assistant" else None
+        if quiz:
+            render_quiz(quiz)
+        else:
+            st.markdown(m["content"])
     if m.get("sources"):
-        with st.expander(f"📚 Fuentes ({len(m['sources'])})"):
+        with st.expander(f"Fuentes consultadas · {len(m['sources'])}"):
             if m.get("standalone") and m["standalone"] != m.get("question"):
                 st.caption(f"🔎 Búsqueda realizada: «{m['standalone']}»")
             st.markdown(sources_html(m["sources"]), unsafe_allow_html=True)
@@ -179,63 +174,140 @@ if not _key_ok(settings.llm_provider.lower()):
 _provider = settings.llm_provider.lower()
 _env = {"anthropic": "ANTHROPIC_API_KEY", "groq": "GROQ_API_KEY", "gemini": "GEMINI_API_KEY"}.get(_provider, "OPENAI_API_KEY")
 _key = os.getenv(_env, "")
-pipe, n_chunks = load_pipeline(f"{_provider}|{settings.llm_model}|{hashlib.sha256(_key.encode()).hexdigest()[:12]}")
+_rag_dir = Path(__file__).parent / "rag"
+_retrieval_signature = hashlib.sha256(b"".join(
+    (_rag_dir / name).read_bytes() for name in ("pipeline.py", "vectorstore.py", "retrieval.py", "prompts.py")
+)).hexdigest()[:12]
+pipe, n_chunks = load_pipeline(
+    f"{_provider}|{settings.llm_model}|{hashlib.sha256(_key.encode()).hexdigest()[:12]}", _retrieval_signature,
+)
 
-# ------------------------------------------------------------------ Barra lateral ----
+# ------------------------------------------------------------------ Espacio de estudio ----
+if "view" not in st.session_state:
+    st.session_state.view = "chat"
+documents = sorted(p for p in settings.corpus_dir.glob("*") if p.is_file())
+
 with st.sidebar:
-    st.markdown("### 🎓 Tutor IA")
-    st.caption("Te guía con preguntas (método socrático) usando solo el material de la asignatura y muestra sus fuentes.")
-    st.markdown("**Documentos indexados**")
-    for f in sorted(p.name for p in settings.corpus_dir.glob("*") if p.is_file()):
-        st.markdown(f"<div class='side-doc'>📄 {html.escape(f)}</div>", unsafe_allow_html=True)
-    st.divider()
-    top_k = st.slider("Fragmentos a recuperar (top_k)", 1, 8, settings.top_k, help="Más fragmentos = más contexto, pero también más ruido.")
-    st.caption(f"{n_chunks} fragmentos · embeddings `{settings.embedding_model.split('/')[-1]}`")
-    if st.button("🗑️ Nueva conversación", use_container_width=True):
+    st.markdown(
+        f'<div class="brand"><div class="brand-symbol">{icon("spark")}</div>'
+        '<div><div class="brand-name">Tutor<span> IA</span></div>'
+        '<div class="brand-caption">Tu espacio de estudio</div></div></div>',
+        unsafe_allow_html=True,
+    )
+    if st.button("Nueva conversación", icon=":material/add:", key="new_chat", use_container_width=True):
         st.session_state.messages = []
+        st.session_state.pending = None
+        st.session_state.view = "chat"
         st.rerun()
-    st.divider()
-    st.caption("🔒 Tus documentos no se usan para entrenar modelos: al LLM solo se envían los fragmentos recuperados de cada consulta.")
+
+    st.markdown('<div class="rail-label" style="margin-top:0">ESPACIO DE TRABAJO</div>', unsafe_allow_html=True)
+    if st.button("Tutor académico", icon=":material/chat_bubble_outline:", key="nav_chat",
+                 type="primary" if st.session_state.view == "chat" else "secondary", use_container_width=True):
+        st.session_state.view = "chat"
+        st.rerun()
+    if st.button("Biblioteca del curso", icon=":material/book_2:", key="nav_library",
+                 type="primary" if st.session_state.view == "library" else "secondary", use_container_width=True):
+        st.session_state.view = "library"
+        st.rerun()
+
+    # El espacio central de la barra queda disponible para el futuro historial de chats.
+    with st.container(key="sidebar_footer"):
+        with st.expander("Ajustes de búsqueda", icon=":material/tune:"):
+            top_k = st.slider("Fragmentos por consulta", 1, 8, min(8, max(1, settings.top_k)),
+                              help="Un fragmento (chunk) es una porción del documento. Este es el máximo que recibe el modelo después de ordenar y filtrar los candidatos; pueden llegar menos si no hay suficiente contexto relevante.")
+            st.caption(f"{len(documents)} documentos · {n_chunks} fragmentos indexados")
+            st.caption(f"Fragmentos de hasta {settings.chunk_size} caracteres · solapamiento de hasta {settings.chunk_overlap}")
+            st.caption(f"Embeddings locales · {settings.embedding_model.split('/')[-1]}")
+            st.caption("Al modelo solo se envían los fragmentos recuperados para responder tu pregunta.")
+        st.markdown(
+            f'<div class="profile"><div class="profile-avatar">E</div>'
+            '<div><div class="profile-name">Estudiante</div><div class="profile-subtitle">La curiosidad es tu superpoder</div></div>'
+            f'{icon("spark")}</div>', unsafe_allow_html=True,
+        )
 
 # ------------------------------------------------------------------ Cabecera ----
+current_view = "Biblioteca del curso" if st.session_state.view == "library" else "Tutor académico"
 st.markdown(
-    """
-<div class="hero">
-  <h1>Tutor de Desarrollo de Aplicaciones con IA</h1>
-  <p>No te daré la respuesta hecha: te haré las preguntas que te ayuden a llegar a ella (RAG, TF-IDF, BM25, búsqueda híbrida,
-  ingeniería de prompts y LLMs locales). Trabajo solo con el material de la asignatura y te muestro en qué fragmentos me apoyo.
-  También puedo prepararte un quiz de repaso.</p>
-  <span class="pill">Método socrático</span><span class="pill">Con fuentes</span><span class="pill">Sin inventar</span>
-</div>
-""",
+    f'<div class="workspace-header"><div class="breadcrumb">{icon("book")} Mi espacio'
+    f'<span class="separator">/</span><strong>{current_view}</strong></div>'
+    '<div class="workspace-badge"><span class="status-dot"></span>Desarrollo de aplicaciones con IA</div></div>',
     unsafe_allow_html=True,
 )
 
-# ------------------------------------------------------------------ Historial / estado vacío ----
-if not st.session_state.messages:
-    st.markdown("<div class='empty-title'>Prueba con una de estas preguntas:</div>", unsafe_allow_html=True)
-    cols = st.columns(2)
-    for i, q in enumerate(SUGGESTIONS):
-        if cols[i % 2].button(q, key=f"sug{i}"):
-            st.session_state.pending = q
-            st.rerun()
+if st.session_state.view == "library":
+    st.markdown(
+        '<div class="library-heading"><div class="eyebrow">TU BASE DE CONOCIMIENTO</div>'
+        '<h1>Las fuentes de tus ideas.</h1>'
+        f'<p>{len(documents)} documentos del curso, conectados a tu conversación. '
+        'Tu tutor consulta este material para ayudarte a aprender con fundamento.</p></div>', unsafe_allow_html=True,
+    )
+    if not documents:
+        st.info("Todavía no hay documentos en la biblioteca del curso.")
+    for document in documents:
+        title = DOCUMENT_TITLES.get(document.name, document.stem.replace("_", " "))
+        st.markdown(
+            f'<div class="document-row"><div class="document-icon">{icon("source")}</div>'
+            f'<div class="document-info"><strong>{html.escape(title)}</strong>'
+            f'<span>{html.escape(document.name)} · {document.stat().st_size / 1024:.0f} KB</span></div>'
+            f'<span class="document-format">{html.escape(document.suffix[1:].upper())}</span></div>',
+            unsafe_allow_html=True,
+        )
+    if st.button("Volver a mi conversación", icon=":material/arrow_back:"):
+        st.session_state.view = "chat"
+        st.rerun()
+    st.stop()
+
+# ------------------------------------------------------------------ Historial / bienvenida ----
+if not st.session_state.messages and not st.session_state.pending:
+    st.markdown(
+        f'<div class="welcome"><div class="orbit"><div class="orbit-core">{icon("spark")}</div></div>'
+        '<div class="eyebrow">UN POCO DE CURIOSIDAD. INFINITAS POSIBILIDADES.</div>'
+        '<h1>Las grandes ideas empiezan<br><span class="heading-accent">con una buena pregunta.</span></h1>'
+        '<p>Tu compañero para entender, conectar ideas y llegar más lejos.<br>'
+        'Exploremos juntos el mundo de la inteligencia artificial.</p>'
+        f'<div class="capabilities"><span>{icon("spark")} Aprendizaje socrático</span>'
+        f'<span>{icon("source")} Respuestas con fuentes</span>'
+        f'<span>{icon("shield")} Basado en tu curso</span></div></div>', unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<div class="suggestion-heading"><span>Un buen lugar para empezar</span>'
+        '<span>Elige una idea y hazla tuya ↘</span></div>', unsafe_allow_html=True,
+    )
+    with st.container(key="suggestion_grid"):
+        for row in range(2):
+            cols = st.columns(2)
+            for column in range(2):
+                i = row * 2 + column
+                title, description, question, material_icon = SUGGESTIONS[i]
+                cols[column].button(f"**{title}**  \n{description}", icon=f":material/{material_icon}:",
+                                    key=f"sug{i}", use_container_width=True,
+                                    on_click=open_question, args=(question,))
+    st.markdown(
+        f'<div class="quiet-note">{icon("lock")} Tus preguntas abren caminos. Tus documentos no se usan para entrenar modelos.</div>',
+        unsafe_allow_html=True,
+    )
+else:
+    st.markdown(
+        '<div class="conversation-heading"><h1>Sigamos el hilo de tus ideas.</h1>'
+        '<p>Pregunta, explora y construye tu propia respuesta.</p></div>', unsafe_allow_html=True,
+    )
 
 for m in st.session_state.messages:
-    with st.chat_message(m["role"], avatar="🧑‍🎓" if m["role"] == "user" else "🎓"):
+    with st.chat_message(m["role"], avatar=":material/person:" if m["role"] == "user" else ":material/auto_awesome:"):
         render_message(m)
 
 # ------------------------------------------------------------------ Entrada ----
-typed = st.chat_input("Escribe tu pregunta…")
+typed = st.chat_input("Pregunta, conecta ideas, descubre algo nuevo…")
 prompt = st.session_state.pending or typed
 st.session_state.pending = None
 
 if prompt:
     history = [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
-    with st.chat_message("user", avatar="🧑‍🎓"):
+    with st.chat_message("user", avatar=":material/person:"):
         st.markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    with st.chat_message("assistant", avatar="🎓"):
+    with st.chat_message("assistant", avatar=":material/auto_awesome:"):
         try:
             with st.spinner("Buscando en la base de conocimientos…"):
                 prep = pipe.prepare(prompt, history, top_k)
@@ -258,13 +330,5 @@ if prompt:
         msg = {"role": "assistant", "content": ans.text, "sources": sources, "refused": ans.refused,
                "standalone": ans.standalone, "question": prompt}
         st.session_state.messages.append(msg)
-        redraw = (ans.refused and prep.messages is not None) or parse_quiz(ans.text) is not None
-        if redraw:
-            pass  # rechazo del LLM o quiz JSON: se redibuja abajo con su formato estilizado
-        elif sources:
-            with st.expander(f"📚 Fuentes ({len(sources)})"):
-                if ans.standalone != prompt:
-                    st.caption(f"🔎 Búsqueda realizada: «{ans.standalone}»")
-                st.markdown(sources_html(sources), unsafe_allow_html=True)
-    if redraw:
-        st.rerun()
+    # Actualiza también la cabecera y la conversación de la barra lateral tras el streaming.
+    st.rerun()
