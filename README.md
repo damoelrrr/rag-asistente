@@ -2,6 +2,8 @@
 
 Asistente conversacional que responde **únicamente** con la información de una base de conocimientos propia y **cita la fuente** (documento y fragmento) de cada respuesta. Cuando la información no está en el corpus, lo dice en lugar de inventar.
 
+En las consultas normales, primero explica la respuesta con citas del material recuperado y después hace una sola pregunta de seguimiento. Los quizzes y otras herramientas de estudio conservan el formato solicitado.
+
 > **URL pública de la aplicación:** `https://TU-APP.streamlit.app`  ← *(reemplazar tras el despliegue)*
 > **Repositorio:** <https://github.com/damoelrrr/rag-asistente>
 

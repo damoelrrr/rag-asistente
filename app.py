@@ -265,7 +265,7 @@ if not st.session_state.messages and not st.session_state.pending:
         '<h1>Las grandes ideas empiezan<br><span class="heading-accent">con una buena pregunta.</span></h1>'
         '<p>Tu compañero para entender, conectar ideas y llegar más lejos.<br>'
         'Exploremos juntos el mundo de la inteligencia artificial.</p>'
-        f'<div class="capabilities"><span>{icon("spark")} Aprendizaje socrático</span>'
+        f'<div class="capabilities"><span>{icon("spark")} Aprendizaje guiado</span>'
         f'<span>{icon("source")} Respuestas con fuentes</span>'
         f'<span>{icon("shield")} Basado en tu curso</span></div></div>', unsafe_allow_html=True,
     )
