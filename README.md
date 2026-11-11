@@ -142,3 +142,20 @@ docs/                    PDFs, diagrama y capturas (docs/screenshots/)
 - **Ragas falla con `n` / `strictness` en Anthropic:** ejecuta con `RAGAS_STRICTNESS=1` o usa `JUDGE_PROVIDER=openai`.
 - **Rechaza preguntas válidas:** sube `MAX_DISTANCE` (p. ej. 0.85). **Responde cosas fuera del corpus:** bájalo (p. ej. 0.6).
 - **Cambiaste `CHUNK_SIZE` o el modelo de embeddings:** cada combinación crea su propio índice en `data/index/`.
+> **URL pública de la aplicación:** https://rag-asistente-bdqqdfqfnzl6bymy65mtm2.streamlit.app/
+> **Repositorio:** [https://github.com/damoelrrr/rag-asistente](https://github.com/damoelrrr/rag-asistente)
+
+<!-- ↑ Sustituye en el README principal la línea que dice "https://TU-APP.streamlit.app ← (reemplazar tras el despliegue)". -->
+
+<!-- ↓ Pega esta sección al final del README principal, antes de "Problemas frecuentes" o al final. -->
+
+## 7. Taller multimodal y audio
+
+El repositorio incluye también el taller de entrada multimodal y audio, sobre el mismo dominio del asistente
+(RAG, TF-IDF/BM25, ingeniería de prompts y LLMs locales). Está en [`taller_multimodal/`](taller_multimodal/):
+
+- **Imágenes (Groq, modelo de visión):** pregunta sobre una imagen, extracción estructurada validada con Pydantic, varias imágenes en una solicitud y errores provocados.
+- **Audio (Whisper en Groq):** transcripción de 5 audios de dos hablantes (uno con ruido), medida del error (WER) y respuesta del tutor RAG a partir de la transcripción.
+
+Instrucciones de ejecución, variables de entorno y resultados: [`taller_multimodal/README.md`](taller_multimodal/README.md).
+Informe de entrega: [`taller_multimodal/informe/Informe_Taller_Multimodal.docx`](taller_multimodal/informe/Informe_Taller_Multimodal.docx).
