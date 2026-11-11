@@ -1,0 +1,27 @@
+{
+  "audio1": {
+    "hablante": "Stiven Rodriguez",
+    "condicion": "sin ruido",
+    "texto": "Hola, soy Stiven. Tengo una duda sobre búsqueda por palabras clave. ¿En qué se diferencia BM25 de TF-IDF? Y en la fórmula de BM25, ¿qué controlan los parámetros k1 y b, y qué valores se usan normalmente?"
+  },
+  "audio2": {
+    "hablante": "Daniel Rodriguez",
+    "condicion": "sin ruido",
+    "texto": "Hola, soy Daniel. En un sistema RAG, ¿qué pasa en la etapa de indexing? Quiero entender cómo se dividen los documentos en chunks y para qué sirven los embeddings y la base de datos vectorial cuando el usuario hace una pregunta."
+  },
+  "audio3": {
+    "hablante": "Stiven Rodriguez",
+    "condicion": "con ruido",
+    "texto": "Soy Stiven otra vez. ¿Qué ventajas tiene ejecutar un LLM de forma local con Ollama en vez de usar una API en la nube? ¿Y qué comando se usa para descargar el modelo Llama 3?"
+  },
+  "audio4": {
+    "hablante": "Daniel Rodriguez",
+    "condicion": "sin ruido",
+    "texto": "Soy Daniel. Según la ingeniería de prompts, ¿cuáles son los componentes de un prompt correcto? Por ejemplo, ¿qué diferencia hay entre la tarea, el formato y el contexto, y para qué sirven las restricciones?"
+  },
+  "audio5": {
+    "hablante": "Stiven Rodriguez",
+    "condicion": "sin ruido",
+    "texto": "Última pregunta. ¿Cómo instalo la extensión pgvector en PostgreSQL para guardar los embeddings de mi proyecto?"
+  }
+}

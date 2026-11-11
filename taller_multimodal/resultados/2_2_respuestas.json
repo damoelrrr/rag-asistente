@@ -1,0 +1,292 @@
+[
+  {
+    "audio": "audio1_stiven.m4a",
+    "clave": "audio1",
+    "hablante": "Stiven Rodriguez",
+    "condicion": "sin ruido",
+    "texto": "Hola, soy Stiven. Tengo una duda sobre búsqueda por palabras clave. ¿En qué se diferencia BM25 de TF-IDF? Y en la fórmula de BM25, ¿qué controlan los parámetros k1 y b, y qué valores se usan normalmente?",
+    "mb": 0.39,
+    "transcripciones": {
+      "whisper-large-v3-turbo": {
+        "texto": "hola soy steven tengo una duda sobre búsqueda por palabras clave en que se diferencia bm 25 de tf y df y en la fórmula de bm 25 que controlan los parámetros k1 y b y qué valores se usan normalmente",
+        "duracion_s": 24.405311488,
+        "segundos_api": 1.42,
+        "wer": 0.184,
+        "errores": 7,
+        "palabras": 38
+      },
+      "whisper-large-v3": {
+        "texto": "Hola soy Steven, tengo una duda sobre búsqueda por palabras clave. ¿En qué se diferencia BM25 de TF y DF? Y en la fórmula de BM25, ¿qué controlan los parámetros K1 y B? ¿Y qué valores se usan normalmente?",
+        "duracion_s": 24.405311488,
+        "segundos_api": 0.68,
+        "wer": 0.079,
+        "errores": 3,
+        "palabras": 38
+      },
+      "whisper-large-v3-turbo+vocabulario": {
+        "texto": "Hola, soy Steven. Tengo una duda sobre búsqueda por palabras clave. ¿En qué se diferencia BM25 de TF-IDF? ¿Y en la fórmula de BM25, qué controlan los parámetros K1 y B? ¿Y qué valores se usan normalmente?",
+        "duracion_s": 24.405311488,
+        "segundos_api": 0.56,
+        "wer": 0.026,
+        "errores": 1,
+        "palabras": 38
+      }
+    },
+    "respuesta": {
+      "texto": "BM25 y TF‑IDF son dos modelos para puntuar la relevancia de un documento respecto a una consulta de palabras clave.  \n\n- **TF‑IDF** multiplica la frecuencia del término en el documento (TF) por la frecuencia inversa del documento (IDF) [2][3]. Su principal limitación es que la importancia crece linealmente con el número de apariciones y no considera la longitud del documento, lo que puede favorecer documentos muy extensos o con repeticiones excesivas [1].  \n\n- **BM25** corrige esas dos limitaciones [1]:  \n  1. **Saturación del TF**: después de cierto número de apariciones la relevancia deja de crecer linealmente, evitando que repetir una palabra diez veces haga al documento diez veces más relevante.  \n  2. **Normalización por longitud**: ajusta la puntuación según la longitud del documento, de modo que documentos más largos no reciban una ventaja injusta.  \n\nEn la fórmula de BM25 aparecen dos parámetros de control:  \n\n- **k₁** regula la saturación del TF. Valores típicos están entre 1.2 y 2.0; cuanto mayor es k₁, más peso se le da a la frecuencia del término antes de saturarse.  \n- **b** controla la normalización por longitud del documento. Su rango es 0 ≤ b ≤ 1; el valor más usado es 0.75, que aplica una normalización moderada.  \n\nEstos valores (k₁≈1.5, b≈0.75) son los que habitualmente se emplean como punto de partida en la mayoría de los sistemas de recuperación [1][4].\n\n**Pregunta de seguimiento:** ¿Cómo crees que afectaría a la puntuación de un documento muy largo si disminuyeras el valor de b en la fórmula de BM25?",
+      "rechazo": false,
+      "fuentes": [
+        "[1] 3 BM25_Score.pdf p.2",
+        "[2] TF-IDF_Keyword_search.pdf p.24",
+        "[3] TF-IDF_Keyword_search.pdf p.22",
+        "[4] 3 BM25_Score.pdf p.6"
+      ],
+      "consulta": "hola soy steven tengo una duda sobre búsqueda por palabras clave en que se diferencia bm 25 de tf y df y en la fórmula de bm 25 que controlan los parámetros k1 y b y qué valores se usan normalmente",
+      "segundos": 9.85
+    },
+    "respuesta_control": {
+      "texto": "BM25 y TF‑IDF son métodos para valorar la importancia de una palabra en una colección de documentos, pero difieren en dos aspectos clave:\n\n1. **Saturación del TF** – En TF‑IDF la frecuencia del término (TF) crece de forma lineal: si una palabra aparece 10 veces es 10 × más importante que si aparece una vez. BM25 introduce una “saturación” de TF, de modo que después de cierto número de apariciones la relevancia deja de crecer linealmente, evitando que palabras muy repetidas dominen la puntuación [2].\n\n2. **Normalización por longitud del documento** – TF‑IDF no ajusta la puntuación según la longitud del documento, lo que favorece a documentos extensos. BM25 normaliza por la longitud promedio del documento, penalizando documentos muy largos y equilibrando la comparación entre textos de diferentes tamaños [3].\n\nEn la fórmula de BM25, los parámetros controlan esos ajustes:\n\n- **k₁** regula la velocidad con la que el TF se satura; valores típicos están entre **1.2 y 2.0**. Un k₁ mayor permite que TF siga aumentando un poco más antes de saturarse, mientras que un k₁ bajo hace que la saturación ocurra rápidamente [4].\n- **b** controla la penalización por longitud del documento; valores habituales son **0.75**. Si b = 1 la penalización es máxima (se castiga mucho la longitud), y si b = 0 se ignora por completo la longitud del documento [4].\n\n**Resumen:** BM25 mejora TF‑IDF al limitar la influencia excesiva de palabras muy frecuentes y al ajustar la puntuación según la longitud del documento, usando k₁ y b para regular la saturación del TF y la penalización por longitud, respectivamente.\n\n*¿Podrías aplicar estos conceptos a un caso práctico, por ejemplo, comparar la puntuación de una palabra clave en un documento corto y otro largo?*",
+      "rechazo": false,
+      "fuentes": [
+        "3 BM25_Score.pdf p.2",
+        "3 BM25_Score.pdf p.3",
+        "3 BM25_Score.pdf p.5",
+        "TF-IDF_Keyword_search.pdf p.22"
+      ],
+      "fuentes_transcripcion": [
+        "3 BM25_Score.pdf p.2",
+        "3 BM25_Score.pdf p.6",
+        "TF-IDF_Keyword_search.pdf p.22",
+        "TF-IDF_Keyword_search.pdf p.24"
+      ]
+    }
+  },
+  {
+    "audio": "audio2_daniel.m4a",
+    "clave": "audio2",
+    "hablante": "Daniel Rodriguez",
+    "condicion": "sin ruido",
+    "texto": "Hola, soy Daniel. En un sistema RAG, ¿qué pasa en la etapa de indexing? Quiero entender cómo se dividen los documentos en chunks y para qué sirven los embeddings y la base de datos vectorial cuando el usuario hace una pregunta.",
+    "mb": 0.34,
+    "transcripciones": {
+      "whisper-large-v3-turbo": {
+        "texto": "Hola soy Daniel, en un sistema RAG ¿Qué pasa en la etapa de indexing? Quiero entender cómo se dividen los documentos en chunks y para qué sirven los embeddings y la base de datos vectorial cuando el usuario hace una pregunta",
+        "duracion_s": 21.248,
+        "segundos_api": 0.51,
+        "wer": 0.0,
+        "errores": 0,
+        "palabras": 41
+      },
+      "whisper-large-v3": {
+        "texto": "Hola soy Daniel, en un sistema RAC, ¿qué pasa en la etapa de indexing? Quiero entender cómo se dividen los documentos en chunks y para qué sirven los embeddings y la base de datos vectorial cuando el usuario hace una pregunta.",
+        "duracion_s": 21.248,
+        "segundos_api": 0.56,
+        "wer": 0.024,
+        "errores": 1,
+        "palabras": 41
+      },
+      "whisper-large-v3-turbo+vocabulario": {
+        "texto": "Hola, soy Daniel. En un sistema RAG, ¿qué pasa en la etapa de indexing? Quiero entender cómo se dividen los documentos en chunks y para qué sirven los embeddings y la base de datos vectorial cuando el usuario hace una pregunta.",
+        "duracion_s": 21.248,
+        "segundos_api": 0.54,
+        "wer": 0.0,
+        "errores": 0,
+        "palabras": 41
+      }
+    },
+    "respuesta": {
+      "texto": "En la etapa de **indexing** se prepara el material para que el modelo pueda buscarlo rápidamente cuando llegue una consulta. Primero se **limpia y extrae** los datos de los documentos (PDF, HTML, Word, Markdown, etc.) y se convierten a texto plano uniforme[2†L1-L4]. Luego ese texto se **segmenta** en fragmentos más pequeños llamados *chunks*; la estrategia más habitual es dividir por un número fijo de tokens (por ejemplo 100, 256 o 512)[1†L1-L4].  \n\nCada chunk se **codifica** con un modelo de embeddings, generando una representación vectorial que captura su significado semántico[2†L5-L8]. Esos vectores se **almacenan** en una base de datos vectorial. Cuando el usuario formula una pregunta, el mismo modelo de embeddings transforma la consulta en un vector y la base de datos realiza una búsqueda de similitud para encontrar los *k* chunks más relevantes[2†L9-L12][3†L2-L4]. Así, los chunks y sus embeddings permiten que el sistema recupere rápidamente la información contextual adecuada antes de que el LLM genere la respuesta final.  \n\n¿Qué tipo de chunk (más grande o más pequeño) crees que sería más útil para responder preguntas muy específicas?",
+      "rechazo": false,
+      "fuentes": [
+        "[1] 2312.10997v5.pdf p.8",
+        "[2] 2312.10997v5.pdf p.3",
+        "[3] 2312.10997v5.pdf p.3",
+        "[4] 2312.10997v5.pdf p.11"
+      ],
+      "consulta": "Hola soy Daniel, en un sistema RAG ¿Qué pasa en la etapa de indexing? Quiero entender cómo se dividen los documentos en chunks y para qué sirven los embeddings y la base de datos vectorial cuando el usuario hace una pregunta",
+      "segundos": 6.64
+    }
+  },
+  {
+    "audio": "audio3_stiven.m4a",
+    "clave": "audio3",
+    "hablante": "Stiven Rodriguez",
+    "condicion": "con ruido",
+    "texto": "Soy Stiven otra vez. ¿Qué ventajas tiene ejecutar un LLM de forma local con Ollama en vez de usar una API en la nube? ¿Y qué comando se usa para descargar el modelo Llama 3?",
+    "mb": 0.31,
+    "transcripciones": {
+      "whisper-large-v3-turbo": {
+        "texto": "soy steven otra vez qué ventajas tiene ejecutar un l l m de forma local con oyama en vez de usar una api en la nube y qué comando se usa para descargar el modelo llama 3",
+        "duracion_s": 19.712,
+        "segundos_api": 0.49,
+        "wer": 0.143,
+        "errores": 5,
+        "palabras": 35
+      },
+      "whisper-large-v3": {
+        "texto": "Soy Steven otra vez, ¿Qué ventajas tiene ejecutar un LLM de forma local con Oyama en vez de usar una API en la nube? ¿Y qué comando se usa para descargar el modelo Yama 3?",
+        "duracion_s": 19.712,
+        "segundos_api": 0.55,
+        "wer": 0.086,
+        "errores": 3,
+        "palabras": 35
+      },
+      "whisper-large-v3-turbo+vocabulario": {
+        "texto": "Soy Steven otra vez. ¿Qué ventajas tiene ejecutar un LLM de forma local con Ollama en vez de usar una API en la nube? ¿Y qué comando se usa para descargar el modelo YAMA 3?",
+        "duracion_s": 19.712,
+        "segundos_api": 0.82,
+        "wer": 0.057,
+        "errores": 2,
+        "palabras": 35
+      }
+    },
+    "respuesta": {
+      "texto": "Ejecutar un LLM de forma local con **Ollama** ofrece varias ventajas frente a usar una API en la nube:\n\n1. **Privacidad y seguridad**: los datos nunca abandonan tu computadora, lo que protege información sensible o empresarial [2].  \n2. **Costo cero**: no pagas por token ni suscripción; el único límite es la capacidad de tu hardware [2].  \n3. **Independencia de internet**: puedes desarrollar y ejecutar aplicaciones sin conexión [2].  \n4. **Personalización total**: controlas los parámetros del sistema y puedes probar modelos experimentales que no están disponibles en la nube [2].\n\nPara descargar el modelo **Llama 3** con Ollama, se usa el comando:\n\n```bash\nollama pull llama3\n```\n\nEste comando descarga el modelo a tu máquina para que luego puedas usarlo en tus aplicaciones [4].\n\n**Pregunta de seguimiento:** ¿Cómo configurarías el *system prompt* para que el modelo local responda siempre con un tono formal?",
+      "rechazo": false,
+      "fuentes": [
+        "[2] Ejecucin_de_LLMs_con_Ollama.pdf p.1",
+        "[4] Ejecucin_de_LLMs_con_Ollama.pdf p.4"
+      ],
+      "consulta": "soy steven otra vez qué ventajas tiene ejecutar un l l m de forma local con oyama en vez de usar una api en la nube y qué comando se usa para descargar el modelo llama 3",
+      "segundos": 4.24
+    },
+    "respuesta_control": {
+      "texto": "Ejecutar un LLM de forma local con **Ollama** ofrece varias ventajas frente a usar una API en la nube:\n\n* **Privacidad y seguridad**: los datos nunca abandonan tu computadora, lo que es ideal para información sensible o empresarial [1].  \n* **Costo cero**: no pagas por token ni suscripción; el único límite es la capacidad de tu hardware [1].  \n* **Independencia de internet**: puedes desarrollar y ejecutar aplicaciones sin conexión [1].  \n* **Personalización total**: controlas los parámetros del sistema y puedes probar modelos experimentales que no están disponibles en la nube [1].\n\nPara descargar el modelo **Llama 3** con Ollama se utiliza el comando:\n\n```bash\nollama pull llama3\n```\n\nEste comando descarga el modelo en tu máquina para que luego puedas usarlo en tus aplicaciones [2][3].\n\n---\n\n¿Qué otro modelo de Ollama te gustaría probar y por qué?",
+      "rechazo": false,
+      "fuentes": [
+        "Ejecucin_de_LLMs_con_Ollama.pdf p.1",
+        "Ejecucin_de_LLMs_con_Ollama.pdf p.2",
+        "Ejecucin_de_LLMs_con_Ollama.pdf p.4",
+        "Introducción a RAG.pdf p.23"
+      ],
+      "fuentes_transcripcion": [
+        "Ejecucin_de_LLMs_con_Ollama.pdf p.1",
+        "Ejecucin_de_LLMs_con_Ollama.pdf p.2",
+        "Ejecucin_de_LLMs_con_Ollama.pdf p.4",
+        "Introducción a RAG.pdf p.23"
+      ]
+    }
+  },
+  {
+    "audio": "audio4_daniel.m4a",
+    "clave": "audio4",
+    "hablante": "Daniel Rodriguez",
+    "condicion": "sin ruido",
+    "texto": "Soy Daniel. Según la ingeniería de prompts, ¿cuáles son los componentes de un prompt correcto? Por ejemplo, ¿qué diferencia hay entre la tarea, el formato y el contexto, y para qué sirven las restricciones?",
+    "mb": 0.29,
+    "transcripciones": {
+      "whisper-large-v3-turbo": {
+        "texto": "Soy Daniel, según la ingeniería de Prompt, ¿cuáles son los componentes de un prompt correcto? Por ejemplo, ¿qué diferencia hay entre la tarea, el formato y el contexto y para qué sirven las restricciones?",
+        "duracion_s": 18.432,
+        "segundos_api": 0.53,
+        "wer": 0.029,
+        "errores": 1,
+        "palabras": 34
+      },
+      "whisper-large-v3": {
+        "texto": "Soy Daniel. Según la ingeniería de prompts, ¿cuáles son los componentes de un prompt correcto? Por ejemplo, ¿qué diferencia hay entre la tarea, el formato y el contexto y para qué sirven las restricciones?",
+        "duracion_s": 18.432,
+        "segundos_api": 0.59,
+        "wer": 0.0,
+        "errores": 0,
+        "palabras": 34
+      },
+      "whisper-large-v3-turbo+vocabulario": {
+        "texto": "Soy Daniel. Según la ingeniería de prompts, ¿cuáles son los componentes de un prompt correcto? Por ejemplo, ¿qué diferencia hay entre la tarea, el formato y el contexto y para qué sirven las restricciones?",
+        "duracion_s": 18.432,
+        "segundos_api": 1.12,
+        "wer": 0.0,
+        "errores": 0,
+        "palabras": 34
+      }
+    },
+    "respuesta": {
+      "texto": "Los componentes básicos de un prompt correcto son:\n\n* **Task (Tarea)**: indica la acción concreta que debe ejecutar la IA, por ejemplo “explica cómo funciona el protocolo HTTP”. Es el objetivo principal del prompt[1†L1-L2].  \n* **Context (Contexto)**: aporta información de fondo que ayuda al modelo a adaptar su respuesta al público o la situación, como “tu audiencia son niños de 8 años”. Sirve para que la salida sea relevante y adecuada al entorno[1†L1-L2].  \n* **Format (Formato)**: define la forma en que debe presentarse la respuesta (lista, tabla, párrafo, código, etc.). Así el modelo sabe cómo estructurar la salida.  \n* **Tone (Tono)**: establece el estilo o registro del texto (formal, informal, técnico, amigable).  \n* **Constraints (Restricciones)**: son reglas que la respuesta debe cumplir o evitar, por ejemplo “no uses tecnicismos innecesarios” o “incluye al menos tres referencias”. Limita y guía la generación para que cumpla requisitos específicos[4†L9-L13].\n\nEn resumen, la **tarea** dice *qué* hacer, el **formato** indica *cómo* presentar la respuesta, el **contexto** explica *para quién* y *en qué situación* se da, y las **restricciones** establecen *qué* se debe o no incluir.  \n\n¿Qué restricción añadirías a un prompt para que la respuesta no supere 150 palabras?",
+      "rechazo": false,
+      "fuentes": [
+        "[1] Introducción_Ingeniería_Prompt (3).pdf p.5",
+        "[2] Introducción_Ingeniería_Prompt (3).pdf p.1",
+        "[3] Introducción_Ingeniería_Prompt (3).pdf p.5",
+        "[4] Introducción_Ingeniería_Prompt (3).pdf p.4"
+      ],
+      "consulta": "Soy Daniel, según la ingeniería de Prompt, ¿cuáles son los componentes de un prompt correcto? Por ejemplo, ¿qué diferencia hay entre la tarea, el formato y el contexto y para qué sirven las restricciones?",
+      "segundos": 23.01
+    },
+    "respuesta_control": {
+      "texto": "Los componentes básicos de un prompt correcto son:\n\n| Componente | Qué es | Para qué sirve |\n|------------|--------|----------------|\n| **Task (Tarea)** | Acción concreta que debe ejecutar la IA (p. ej., “explica”, “escribe”, “resume”). | Define el objetivo principal del modelo. |\n| **Context (Contexto)** | Información de fondo que sitúa la tarea (p. ej., audiencia, nivel de detalle). | Ayuda al modelo a adaptar la respuesta al entorno o al receptor. |\n| **Format (Formato)** | Forma en que se espera la salida (lista, párrafo, tabla, código, etc.). | Garantiza que la respuesta tenga la estructura requerida. |\n| **Tone (Tono)** | Estilo o actitud de la respuesta (formal, amigable, técnico, etc.). | Ajusta la voz del modelo al público o al propósito. |\n| **Constraints (Restricciones)** | Reglas que deben cumplirse o evitarse (longitud máxima, palabras prohibidas, incluir ciertos datos). | Limita o dirige la generación para que sea precisa y segura. |\n| **Topic (Tema)** | Sujeto o asunto central de la tarea; suele ser un sustantivo con adjetivos que especifica de qué se trata la acción [4]. | Refina la tarea al indicar exactamente sobre qué debe versar la respuesta. |\n\nEn resumen, **Task** indica *qué* hacer, **Context** explica *para quién* y *por qué*, **Format** determina *cómo* se presentará la salida, **Tone** define *con qué estilo* se comunica, y **Constraints** establecen *qué* se debe incluir o excluir para que la respuesta sea adecuada.  \n\n**¿Podrías redactar un prompt que solicite a la IA escribir un resumen de 3 frases sobre energía solar, dirigido a estudiantes de secundaria y con la restricción de no usar la palabra “renovable”?**",
+      "rechazo": false,
+      "fuentes": [
+        "Introducción_Ingeniería_Prompt (3).pdf p.1",
+        "Introducción_Ingeniería_Prompt (3).pdf p.3",
+        "Introducción_Ingeniería_Prompt (3).pdf p.5"
+      ],
+      "fuentes_transcripcion": [
+        "Introducción_Ingeniería_Prompt (3).pdf p.1",
+        "Introducción_Ingeniería_Prompt (3).pdf p.4",
+        "Introducción_Ingeniería_Prompt (3).pdf p.5"
+      ]
+    }
+  },
+  {
+    "audio": "audio5_stiven.m4a",
+    "clave": "audio5",
+    "hablante": "Stiven Rodriguez",
+    "condicion": "sin ruido",
+    "texto": "Última pregunta. ¿Cómo instalo la extensión pgvector en PostgreSQL para guardar los embeddings de mi proyecto?",
+    "mb": 0.21,
+    "transcripciones": {
+      "whisper-large-v3-turbo": {
+        "texto": "Última pregunta, ¿Cómo instalo la extensión pg vector en PostgreSQL para guardar los embeddings de mi proyecto?",
+        "duracion_s": 13.312,
+        "segundos_api": 0.49,
+        "wer": 0.125,
+        "errores": 2,
+        "palabras": 16
+      },
+      "whisper-large-v3": {
+        "texto": "Última pregunta, ¿cómo instalo la extensión PG Vector en PostgreSQL para guardar los embeddings de mi proyecto?",
+        "duracion_s": 13.312,
+        "segundos_api": 0.7,
+        "wer": 0.125,
+        "errores": 2,
+        "palabras": 16
+      },
+      "whisper-large-v3-turbo+vocabulario": {
+        "texto": "Última pregunta. ¿Cómo instalo la extensión pgvector en PostgreSQL para guardar los embeddings de mi proyecto?",
+        "duracion_s": 13.312,
+        "segundos_api": 0.4,
+        "wer": 0.0,
+        "errores": 0,
+        "palabras": 16
+      }
+    },
+    "respuesta": {
+      "texto": "No encuentro información sobre la instalación de la extensión **pgvector** en PostgreSQL en los fragmentos del material que me has proporcionado. Por lo tanto, no puedo ofrecerte una respuesta respaldada por esas fuentes.  \n\n¿Te gustaría que te indique dónde podrías buscar la documentación oficial de pgvector para seguir los pasos de instalación?",
+      "rechazo": false,
+      "fuentes": [
+        "[1] 2312.10997v5.pdf p.5",
+        "[2] 2312.10997v5.pdf p.8",
+        "[3] 2312.10997v5.pdf p.4",
+        "[4] Ejecucin_de_LLMs_con_Ollama.pdf p.3"
+      ],
+      "consulta": "Última pregunta, ¿Cómo instalo la extensión pg vector en PostgreSQL para guardar los embeddings de mi proyecto?",
+      "segundos": 24.16
+    },
+    "respuesta_control": {
+      "texto": "No encuentro información sobre la instalación de la extensión **pgvector** en PostgreSQL dentro de los fragmentos proporcionados. Por lo tanto, no puedo ofrecerte una guía respaldada por el material del curso.  \n\n¿Te gustaría que te indique dónde podrías buscar la documentación oficial para instalar pgvector?",
+      "rechazo": false,
+      "fuentes": [
+        "2312.10997v5.pdf p.11",
+        "2312.10997v5.pdf p.5",
+        "3 BM25_Score.pdf p.4",
+        "Ejecucin_de_LLMs_con_Ollama.pdf p.4"
+      ],
+      "fuentes_transcripcion": [
+        "2312.10997v5.pdf p.4",
+        "2312.10997v5.pdf p.5",
+        "2312.10997v5.pdf p.8",
+        "Ejecucin_de_LLMs_con_Ollama.pdf p.3"
+      ]
+    }
+  }
+]

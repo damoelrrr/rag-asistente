@@ -1,0 +1,45 @@
+# Ejecución: 2026-11-11 12:02
+
+==============================================================================
+1.3 VARIAS IMÁGENES EN UNA SOLICITUD   (modelo: qwen/qwen3.8-27b)
+==============================================================================
+Imágenes: 02_tfidf_formula.png, 01_bm25_formula.png, 07_bm25_vs_tfidf_tabla.png
+Pregunta: Las tres imágenes son diapositivas del mismo curso (imagen 1: TF-IDF, imagen 2: fórmula de BM25, imagen 3: resultados y tabla comparativa). Usando solo lo que aparece en ellas, compara TF-IDF y BM25: 1) escribe la fórmula de cada uno; 2) ¿qué problemas de TF-IDF corrige BM25 y con qué parámetro lo hace cada uno?; 3) en el ejemplo de resultados, ¿qué documento queda primero con cada método y por qué? Responde en español.
+
+Respuesta del modelo (57.6 s, tokens de entrada: 2441):
+Basado estrictamente en la información proporcionada en las tres diapositivas, aquí tienes la comparación entre TF-IDF y BM25:
+
+### 1) Fórmulas
+
+*   **TF-IDF (Imagen 1):**
+    $$Score = TF(word, doc) \times \log(\text{Total docs} / \text{Docs containing word})$$
+    *(Donde la fórmula específica del IDF es: $\log(\text{Total de documentos}) / (\text{Documentos con la palabra})$)*
+
+*   **BM25 (Imagen 2):**
+    $$IDF \times \frac{TF \times (k_1 + 1)}{TF + k_1 \times (1 - b + b \times (\frac{\text{document length}}{\text{average document length}}))}$$
+
+### 2) Problemas de TF-IDF que corrige BM25 y sus parámetros
+
+Según la tabla comparativa de la Imagen 3 y las definiciones de la Imagen 2, BM25 corrige dos problemas principales de TF-IDF:
+
+1.  **Saturación (Frecuencia sin límite):**
+    *   **Problema en TF-IDF:** La frecuencia crece sin límite (si una palabra aparece muchas veces, la puntuación sube indefinidamente).
+    *   **Corrección en BM25:** La puntuación satura (no sigue creciendo linealmente).
+    *   **Parámetro:** Se controla con **$k_1$ (Saturación)**. La diapositiva indica que controla qué tan rápido se satura el TF (usualmente entre 1.2 y 2.0).
+
+2.  **Documentos largos (Falta de normalización):**
+    *   **Problema en TF-IDF:** No normaliza por longitud, por lo que los documentos largos pueden obtener altas puntuaciones injustamente.
+    *   **Corrección en BM25:** Penaliza documentos muy largos normalizando por la longitud promedio.
+    *   **Parámetro:** Se controla con **$b$ (Penalización por longitud)**. La diapositiva indica que controla cuánto castigamos la longitud (usualmente 0.75).
+
+### 3) Ejemplo de resultados: ¿Qué documento queda primero y por qué?
+
+Según el bloque de texto "RESULTADOS" en la Imagen 3:
+
+*   **Con TF-IDF:**
+    *   **Primer lugar:** **Documento 2** (con un score de 0.1689).
+    *   **Por qué:** El texto del Documento 2 contiene la palabra "algoritmo" repetida muchas veces seguidas. Como TF-IDF no satura y no penaliza la longitud, esta alta frecuencia lineal le otorga la puntuación más alta.
+
+*   **Con BM25:**
+    *   **Primer lugar:** **Documento 1** (con un score de 0.0351).
+    *   **Por qué:** El Documento 1 ("algorithm of machine learning") es un documento corto y relevante. BM25 lo posiciona primero porque su fórmula satura la frecuencia (evitando que el Documento 2, que es muy largo y repetitivo, gane por volumen) y penaliza la longitud excesiva, favoreciendo la concisión y relevancia del Documento 1.

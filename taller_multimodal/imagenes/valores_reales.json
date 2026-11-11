@@ -1,0 +1,29 @@
+{
+  "01_bm25_formula.png": {
+    "titulo": "¿Cómo se calcula?",
+    "metodo_principal": "BM25",
+    "tipo_contenido": "formula",
+    "idioma_predominante": "es",
+    "contiene_formula": true,
+    "ejemplo_termino": null,
+    "num_documentos_ejemplo": 0
+  },
+  "02_tfidf_formula.png": {
+    "titulo": "Cálculo y fórmula de TF-IDF",
+    "metodo_principal": "TF-IDF",
+    "tipo_contenido": "formula",
+    "idioma_predominante": "es",
+    "contiene_formula": true,
+    "ejemplo_termino": "IA",
+    "num_documentos_ejemplo": 1
+  },
+  "03_term_frequency_ejemplo.png": {
+    "titulo": "Term Frequency (TF)",
+    "metodo_principal": "TF",
+    "tipo_contenido": "ejemplo_numerico",
+    "idioma_predominante": "en",
+    "contiene_formula": false,
+    "ejemplo_termino": "pizza oven",
+    "num_documentos_ejemplo": 2
+  }
+}

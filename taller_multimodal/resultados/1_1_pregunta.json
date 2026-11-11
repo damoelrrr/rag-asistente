@@ -1,0 +1,64 @@
+{
+  "modelo": "qwen/qwen3.8-27b",
+  "imagen": "06_survey_tabla3_metricas.png",
+  "pregunta": "Esta es la Tabla III del survey 'Retrieval-Augmented Generation for Large Language Models'. Según la tabla, ¿qué métricas sirven para evaluar el aspecto 'Context Relevance' y cuáles sirven para 'Faithfulness'? Responde en español con dos listas y no agregues métricas que no estén marcadas.",
+  "respuesta": "Basado en la Tabla III proporcionada, aquí están las métricas para cada aspecto:\n\n**Métricas para 'Context Relevance':**\n*   Recall\n*   Precision\n*   Hit Rate\n*   MRR\n*   NDCG\n*   BLEU\n*   ROUGE/ROUGE-L\n\n**Métricas para 'Faithfulness':**\n*   Accuracy\n*   EM\n*   BLEU\n*   ROUGE/ROUGE-L",
+  "esperada": {
+    "Context Relevance": [
+      "Accuracy",
+      "Recall",
+      "Precision",
+      "Hit Rate",
+      "MRR",
+      "NDCG",
+      "BLEU",
+      "ROUGE/ROUGE-L"
+    ],
+    "Faithfulness": [
+      "Accuracy",
+      "BLEU",
+      "ROUGE/ROUGE-L"
+    ]
+  },
+  "evaluacion": {
+    "Context Relevance": {
+      "mencionadas": [
+        "BLEU",
+        "Hit Rate",
+        "MRR",
+        "NDCG",
+        "Precision",
+        "ROUGE/ROUGE-L",
+        "Recall"
+      ],
+      "faltan": [
+        "Accuracy"
+      ],
+      "sobran": []
+    },
+    "Faithfulness": {
+      "mencionadas": [
+        "Accuracy",
+        "BLEU",
+        "EM",
+        "ROUGE/ROUGE-L"
+      ],
+      "faltan": [],
+      "sobran": [
+        "EM"
+      ]
+    }
+  },
+  "segundos": 1.06,
+  "uso": {
+    "completion_tokens": 104,
+    "prompt_tokens": 848,
+    "total_tokens": 952,
+    "completion_time": 0.20605836,
+    "completion_tokens_details": null,
+    "prompt_time": 0.061429736,
+    "prompt_tokens_details": null,
+    "queue_time": 0.480324227,
+    "total_time": 0.267488096
+  }
+}

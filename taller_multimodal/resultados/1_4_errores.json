@@ -1,0 +1,58 @@
+[
+  {
+    "caso": "mas_imagenes",
+    "descripcion": "Se envían 4 imágenes en un solo mensaje (el límite documentado es 3).",
+    "error": {
+      "tipo": "BadRequestError",
+      "status_code": 400,
+      "mensaje": "Too many images provided.  This model supports up to 3 images",
+      "codigo": null,
+      "cuerpo": {
+        "error": {
+          "message": "Too many images provided.  This model supports up to 3 images",
+          "type": "invalid_request_error"
+        }
+      }
+    }
+  },
+  {
+    "caso": "modelo_sin_vision",
+    "descripcion": "Se envía una imagen a openai/gpt-oss-120b, un modelo de solo texto.",
+    "error": {
+      "tipo": "BadRequestError",
+      "status_code": 400,
+      "mensaje": "messages[0].content must be a string",
+      "codigo": null,
+      "cuerpo": {
+        "error": {
+          "message": "messages[0].content must be a string",
+          "type": "invalid_request_error",
+          "param": "messages[0].content"
+        }
+      }
+    }
+  },
+  {
+    "caso": "tipo_mal_declarado",
+    "descripcion": "Se envía un PNG declarando el tipo 'text/plain' en la data URL.",
+    "error": null,
+    "respuesta": "Esta diapositiva, titulada **¿CÓMO SE CALCULA?**, presenta la fórmula estándar para calcular el score **TF-IDF** (Term Frequency - Inverse Document Frequency) en procesamiento de lenguaje natural.\n\nLa fórmula mostrada es:\n\n> **IDF * [ TF * (k₁ + 1) / (TF + k₁ * (1 - b + b * (document length / average document length))) ]**\n\nDebajo de la fórmula, se define cada componente:\n\n- **IDF**: Frecuencia de documento inverso (medía qué tan raro o común es un término en todos los documentos).\n- **TF**: Frecuencia del término dentro del documento actual.\n- **k₁**: Parámetro de saturación (controla qué tan rápido se \"satura\" la influencia del TF; típicamente entre 1.2 y 2.0).\n- **b**: Parámetro de penalización por longitud del documento (controla cuánto se despenaliza a documentos largos; si b=1, la penalización es máxima; si b=0, se ignora la longitud — valor típico: 0.75).\n\n---\n\n✅ En resumen:  \nEsta diapositiva explica **cómo se calcula TF-IDF** con detalles técnicos sobre los parámetros que ajustan el comportamiento de la métrica, especialmente la normalización por longitud del documento y la saturación de frecuencias"
+  },
+  {
+    "caso": "imagen_muy_grande",
+    "descripcion": "Se envía un PNG de ruido de 2900x2900 (~25 MB; ~34 MB en base64), por encima de 20 MB por solicitud.",
+    "error": {
+      "tipo": "APIStatusError",
+      "status_code": 413,
+      "mensaje": "Request Entity Too Large",
+      "codigo": "request_too_large",
+      "cuerpo": {
+        "error": {
+          "message": "Request Entity Too Large",
+          "type": "invalid_request_error",
+          "code": "request_too_large"
+        }
+      }
+    }
+  }
+]

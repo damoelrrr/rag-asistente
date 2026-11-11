@@ -1,0 +1,74 @@
+# Ejecución: 2026-11-11 12:01
+
+==============================================================================
+1.2 EXTRACCIÓN ESTRUCTURADA   (modelo: qwen/qwen3.8-27b)
+==============================================================================
+Esquema (Pydantic → JSON Schema):
+  - titulo                 <class 'str'>                                                           Título visible de la diapositiva, copiado tal cual
+  - metodo_principal       Literal['TF', 'TF-IDF', 'BM25', 'RAG', 'Keyword Search', 'Semantic Sea  Método de recuperación o concepto principal que explica la diapositiva
+  - tipo_contenido         Literal['formula', 'ejemplo_numerico', 'diagrama', 'tabla', 'texto']    Tipo de contenido dominante de la diapositiva
+  - idioma_predominante    Literal['es', 'en']                                                     Idioma en que está escrita la mayor parte del texto
+  - contiene_formula       <class 'bool'>                                                          true si aparece una fórmula matemática escrita
+  - ejemplo_termino        str | None                                                              Palabra o consulta concreta usada como ejemplo principal (sin comillas); null si no hay
+  - num_documentos_ejemplo <class 'int'>                                                           Cuántos documentos de ejemplo se muestran o mencionan (Documento A, Document 1...); 0 si ninguno
+
+--- 01_bm25_formula.png ---
+Salida cruda del modelo: {"titulo": "¿CÓMO SE CALCULA?", "metodo_principal": "BM25", "tipo_contenido": "formula", "idioma_predominante": "es", "contiene_formula": true, "ejemplo_termino": null, "num_documentos_ejemplo": 0}
+Validación: OK, cumple el esquema
+
+--- 02_tfidf_formula.png ---
+Salida cruda del modelo: {
+  "titulo": "CÁLCULO Y FÓRMULA DE TF-IDF",
+  "metodo_principal": "TF-IDF",
+  "tipo_contenido": "formula",
+  "idioma_predominante": "es",
+  "contiene_formula": true,
+  "ejemplo_termino": "IA",
+  "num_documentos_ejemplo": 1
+}
+Validación: OK, cumple el esquema
+
+--- 03_term_frequency_ejemplo.png ---
+Salida cruda del modelo: {"titulo": "TERM FREQUENCY (TF)", "metodo_principal": "TF", "tipo_contenido": "ejemplo_numerico", "idioma_predominante": "en", "contiene_formula": false, "ejemplo_termino": "pizza oven", "num_documentos_ejemplo": 2}
+Validación: OK, cumple el esquema
+
+==============================================================================
+Tabla de aciertos (valor real vs. extraído)
+==============================================================================
+Imagen                           Campo                  Real                         Extraído                     OK
+01_bm25_formula.png              titulo                 ¿Cómo se calcula?            ¿CÓMO SE CALCULA?            Sí
+01_bm25_formula.png              metodo_principal       BM25                         BM25                         Sí
+01_bm25_formula.png              tipo_contenido         formula                      formula                      Sí
+01_bm25_formula.png              idioma_predominante    es                           es                           Sí
+01_bm25_formula.png              contiene_formula       True                         True                         Sí
+01_bm25_formula.png              ejemplo_termino        None                         None                         Sí
+01_bm25_formula.png              num_documentos_ejemplo 0                            0                            Sí
+02_tfidf_formula.png             titulo                 Cálculo y fórmula de TF-IDF  CÁLCULO Y FÓRMULA DE TF-IDF  Sí
+02_tfidf_formula.png             metodo_principal       TF-IDF                       TF-IDF                       Sí
+02_tfidf_formula.png             tipo_contenido         formula                      formula                      Sí
+02_tfidf_formula.png             idioma_predominante    es                           es                           Sí
+02_tfidf_formula.png             contiene_formula       True                         True                         Sí
+02_tfidf_formula.png             ejemplo_termino        IA                           IA                           Sí
+02_tfidf_formula.png             num_documentos_ejemplo 1                            1                            Sí
+03_term_frequency_ejemplo.png    titulo                 Term Frequency (TF)          TERM FREQUENCY (TF)          Sí
+03_term_frequency_ejemplo.png    metodo_principal       TF                           TF                           Sí
+03_term_frequency_ejemplo.png    tipo_contenido         ejemplo_numerico             ejemplo_numerico             Sí
+03_term_frequency_ejemplo.png    idioma_predominante    en                           en                           Sí
+03_term_frequency_ejemplo.png    contiene_formula       False                        False                        Sí
+03_term_frequency_ejemplo.png    ejemplo_termino        pizza oven                   pizza oven                   Sí
+03_term_frequency_ejemplo.png    num_documentos_ejemplo 2                            2                            Sí
+
+Porcentaje de aciertos: 21 de 21 campos = 100.0 %
+
+==============================================================================
+1.2 (demostración) VALIDACIÓN DE UN JSON INCORRECTO
+==============================================================================
+JSON de prueba: {"titulo": "BM25", "metodo_principal": "Okapi", "tipo_contenido": "formula", "idioma_predominante": "español", "contiene_formula": "sí", "num_documentos_ejemplo": -1, "extra": 1}
+Resultado: NO cumple el esquema →
+   - metodo_principal: Input should be 'TF', 'TF-IDF', 'BM25', 'RAG', 'Keyword Search', 'Semantic Search' or 'Otro'
+   - idioma_predominante: Input should be 'es' or 'en'
+   - contiene_formula: Input should be a valid boolean, unable to interpret input
+   - ejemplo_termino: Field required
+   - num_documentos_ejemplo: Input should be greater than or equal to 0
+   - extra: Extra inputs are not permitted
+Texto que no es JSON → se informa: JSONDecodeError: Expecting value: line 1 column 1 (char 0)

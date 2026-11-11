@@ -1,0 +1,254 @@
+{
+  "modelo": "qwen/qwen3.8-27b",
+  "esquema": {
+    "additionalProperties": false,
+    "description": "Ficha de una diapositiva del curso, útil para catalogar el material que consulta el tutor.",
+    "properties": {
+      "titulo": {
+        "description": "Título visible de la diapositiva, copiado tal cual",
+        "title": "Titulo",
+        "type": "string"
+      },
+      "metodo_principal": {
+        "description": "Método de recuperación o concepto principal que explica la diapositiva",
+        "enum": [
+          "TF",
+          "TF-IDF",
+          "BM25",
+          "RAG",
+          "Keyword Search",
+          "Semantic Search",
+          "Otro"
+        ],
+        "title": "Metodo Principal",
+        "type": "string"
+      },
+      "tipo_contenido": {
+        "description": "Tipo de contenido dominante de la diapositiva",
+        "enum": [
+          "formula",
+          "ejemplo_numerico",
+          "diagrama",
+          "tabla",
+          "texto"
+        ],
+        "title": "Tipo Contenido",
+        "type": "string"
+      },
+      "idioma_predominante": {
+        "description": "Idioma en que está escrita la mayor parte del texto",
+        "enum": [
+          "es",
+          "en"
+        ],
+        "title": "Idioma Predominante",
+        "type": "string"
+      },
+      "contiene_formula": {
+        "description": "true si aparece una fórmula matemática escrita",
+        "title": "Contiene Formula",
+        "type": "boolean"
+      },
+      "ejemplo_termino": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "description": "Palabra o consulta concreta usada como ejemplo principal (sin comillas); null si no hay",
+        "title": "Ejemplo Termino"
+      },
+      "num_documentos_ejemplo": {
+        "description": "Cuántos documentos de ejemplo se muestran o mencionan (Documento A, Document 1...); 0 si ninguno",
+        "minimum": 0,
+        "title": "Num Documentos Ejemplo",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "titulo",
+      "metodo_principal",
+      "tipo_contenido",
+      "idioma_predominante",
+      "contiene_formula",
+      "ejemplo_termino",
+      "num_documentos_ejemplo"
+    ],
+    "title": "FichaDiapositiva",
+    "type": "object"
+  },
+  "resultados": [
+    {
+      "imagen": "01_bm25_formula.png",
+      "salida_cruda": "{\"titulo\": \"¿CÓMO SE CALCULA?\", \"metodo_principal\": \"BM25\", \"tipo_contenido\": \"formula\", \"idioma_predominante\": \"es\", \"contiene_formula\": true, \"ejemplo_termino\": null, \"num_documentos_ejemplo\": 0}",
+      "valido": true,
+      "problemas": []
+    },
+    {
+      "imagen": "02_tfidf_formula.png",
+      "salida_cruda": "{\n  \"titulo\": \"CÁLCULO Y FÓRMULA DE TF-IDF\",\n  \"metodo_principal\": \"TF-IDF\",\n  \"tipo_contenido\": \"formula\",\n  \"idioma_predominante\": \"es\",\n  \"contiene_formula\": true,\n  \"ejemplo_termino\": \"IA\",\n  \"num_documentos_ejemplo\": 1\n}",
+      "valido": true,
+      "problemas": []
+    },
+    {
+      "imagen": "03_term_frequency_ejemplo.png",
+      "salida_cruda": "{\"titulo\": \"TERM FREQUENCY (TF)\", \"metodo_principal\": \"TF\", \"tipo_contenido\": \"ejemplo_numerico\", \"idioma_predominante\": \"en\", \"contiene_formula\": false, \"ejemplo_termino\": \"pizza oven\", \"num_documentos_ejemplo\": 2}",
+      "valido": true,
+      "problemas": []
+    }
+  ],
+  "tabla": [
+    {
+      "imagen": "01_bm25_formula.png",
+      "campo": "titulo",
+      "valor_real": "¿Cómo se calcula?",
+      "valor_extraido": "¿CÓMO SE CALCULA?",
+      "correcto": true
+    },
+    {
+      "imagen": "01_bm25_formula.png",
+      "campo": "metodo_principal",
+      "valor_real": "BM25",
+      "valor_extraido": "BM25",
+      "correcto": true
+    },
+    {
+      "imagen": "01_bm25_formula.png",
+      "campo": "tipo_contenido",
+      "valor_real": "formula",
+      "valor_extraido": "formula",
+      "correcto": true
+    },
+    {
+      "imagen": "01_bm25_formula.png",
+      "campo": "idioma_predominante",
+      "valor_real": "es",
+      "valor_extraido": "es",
+      "correcto": true
+    },
+    {
+      "imagen": "01_bm25_formula.png",
+      "campo": "contiene_formula",
+      "valor_real": true,
+      "valor_extraido": true,
+      "correcto": true
+    },
+    {
+      "imagen": "01_bm25_formula.png",
+      "campo": "ejemplo_termino",
+      "valor_real": null,
+      "valor_extraido": null,
+      "correcto": true
+    },
+    {
+      "imagen": "01_bm25_formula.png",
+      "campo": "num_documentos_ejemplo",
+      "valor_real": 0,
+      "valor_extraido": 0,
+      "correcto": true
+    },
+    {
+      "imagen": "02_tfidf_formula.png",
+      "campo": "titulo",
+      "valor_real": "Cálculo y fórmula de TF-IDF",
+      "valor_extraido": "CÁLCULO Y FÓRMULA DE TF-IDF",
+      "correcto": true
+    },
+    {
+      "imagen": "02_tfidf_formula.png",
+      "campo": "metodo_principal",
+      "valor_real": "TF-IDF",
+      "valor_extraido": "TF-IDF",
+      "correcto": true
+    },
+    {
+      "imagen": "02_tfidf_formula.png",
+      "campo": "tipo_contenido",
+      "valor_real": "formula",
+      "valor_extraido": "formula",
+      "correcto": true
+    },
+    {
+      "imagen": "02_tfidf_formula.png",
+      "campo": "idioma_predominante",
+      "valor_real": "es",
+      "valor_extraido": "es",
+      "correcto": true
+    },
+    {
+      "imagen": "02_tfidf_formula.png",
+      "campo": "contiene_formula",
+      "valor_real": true,
+      "valor_extraido": true,
+      "correcto": true
+    },
+    {
+      "imagen": "02_tfidf_formula.png",
+      "campo": "ejemplo_termino",
+      "valor_real": "IA",
+      "valor_extraido": "IA",
+      "correcto": true
+    },
+    {
+      "imagen": "02_tfidf_formula.png",
+      "campo": "num_documentos_ejemplo",
+      "valor_real": 1,
+      "valor_extraido": 1,
+      "correcto": true
+    },
+    {
+      "imagen": "03_term_frequency_ejemplo.png",
+      "campo": "titulo",
+      "valor_real": "Term Frequency (TF)",
+      "valor_extraido": "TERM FREQUENCY (TF)",
+      "correcto": true
+    },
+    {
+      "imagen": "03_term_frequency_ejemplo.png",
+      "campo": "metodo_principal",
+      "valor_real": "TF",
+      "valor_extraido": "TF",
+      "correcto": true
+    },
+    {
+      "imagen": "03_term_frequency_ejemplo.png",
+      "campo": "tipo_contenido",
+      "valor_real": "ejemplo_numerico",
+      "valor_extraido": "ejemplo_numerico",
+      "correcto": true
+    },
+    {
+      "imagen": "03_term_frequency_ejemplo.png",
+      "campo": "idioma_predominante",
+      "valor_real": "en",
+      "valor_extraido": "en",
+      "correcto": true
+    },
+    {
+      "imagen": "03_term_frequency_ejemplo.png",
+      "campo": "contiene_formula",
+      "valor_real": false,
+      "valor_extraido": false,
+      "correcto": true
+    },
+    {
+      "imagen": "03_term_frequency_ejemplo.png",
+      "campo": "ejemplo_termino",
+      "valor_real": "pizza oven",
+      "valor_extraido": "pizza oven",
+      "correcto": true
+    },
+    {
+      "imagen": "03_term_frequency_ejemplo.png",
+      "campo": "num_documentos_ejemplo",
+      "valor_real": 2,
+      "valor_extraido": 2,
+      "correcto": true
+    }
+  ],
+  "aciertos": 21,
+  "total": 21
+}

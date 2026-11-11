@@ -1,0 +1,172 @@
+[
+  {
+    "audio": "audio1_stiven.m4a",
+    "clave": "audio1",
+    "hablante": "Stiven Rodriguez",
+    "condicion": "sin ruido",
+    "texto": "Hola, soy Stiven. Tengo una duda sobre búsqueda por palabras clave. ¿En qué se diferencia BM25 de TF-IDF? Y en la fórmula de BM25, ¿qué controlan los parámetros k1 y b, y qué valores se usan normalmente?",
+    "mb": 0.39,
+    "transcripciones": {
+      "whisper-large-v3-turbo": {
+        "texto": "hola soy steven tengo una duda sobre búsqueda por palabras clave en que se diferencia bm 25 de tf y df y en la fórmula de bm 25 que controlan los parámetros k1 y b y qué valores se usan normalmente",
+        "duracion_s": 24.405311488,
+        "segundos_api": 1.42,
+        "wer": 0.184,
+        "errores": 7,
+        "palabras": 38
+      },
+      "whisper-large-v3": {
+        "texto": "Hola soy Steven, tengo una duda sobre búsqueda por palabras clave. ¿En qué se diferencia BM25 de TF y DF? Y en la fórmula de BM25, ¿qué controlan los parámetros K1 y B? ¿Y qué valores se usan normalmente?",
+        "duracion_s": 24.405311488,
+        "segundos_api": 0.68,
+        "wer": 0.079,
+        "errores": 3,
+        "palabras": 38
+      },
+      "whisper-large-v3-turbo+vocabulario": {
+        "texto": "Hola, soy Steven. Tengo una duda sobre búsqueda por palabras clave. ¿En qué se diferencia BM25 de TF-IDF? ¿Y en la fórmula de BM25, qué controlan los parámetros K1 y B? ¿Y qué valores se usan normalmente?",
+        "duracion_s": 24.405311488,
+        "segundos_api": 0.56,
+        "wer": 0.026,
+        "errores": 1,
+        "palabras": 38
+      }
+    }
+  },
+  {
+    "audio": "audio2_daniel.m4a",
+    "clave": "audio2",
+    "hablante": "Daniel Rodriguez",
+    "condicion": "sin ruido",
+    "texto": "Hola, soy Daniel. En un sistema RAG, ¿qué pasa en la etapa de indexing? Quiero entender cómo se dividen los documentos en chunks y para qué sirven los embeddings y la base de datos vectorial cuando el usuario hace una pregunta.",
+    "mb": 0.34,
+    "transcripciones": {
+      "whisper-large-v3-turbo": {
+        "texto": "Hola soy Daniel, en un sistema RAG ¿Qué pasa en la etapa de indexing? Quiero entender cómo se dividen los documentos en chunks y para qué sirven los embeddings y la base de datos vectorial cuando el usuario hace una pregunta",
+        "duracion_s": 21.248,
+        "segundos_api": 0.51,
+        "wer": 0.0,
+        "errores": 0,
+        "palabras": 41
+      },
+      "whisper-large-v3": {
+        "texto": "Hola soy Daniel, en un sistema RAC, ¿qué pasa en la etapa de indexing? Quiero entender cómo se dividen los documentos en chunks y para qué sirven los embeddings y la base de datos vectorial cuando el usuario hace una pregunta.",
+        "duracion_s": 21.248,
+        "segundos_api": 0.56,
+        "wer": 0.024,
+        "errores": 1,
+        "palabras": 41
+      },
+      "whisper-large-v3-turbo+vocabulario": {
+        "texto": "Hola, soy Daniel. En un sistema RAG, ¿qué pasa en la etapa de indexing? Quiero entender cómo se dividen los documentos en chunks y para qué sirven los embeddings y la base de datos vectorial cuando el usuario hace una pregunta.",
+        "duracion_s": 21.248,
+        "segundos_api": 0.54,
+        "wer": 0.0,
+        "errores": 0,
+        "palabras": 41
+      }
+    }
+  },
+  {
+    "audio": "audio3_stiven.m4a",
+    "clave": "audio3",
+    "hablante": "Stiven Rodriguez",
+    "condicion": "con ruido",
+    "texto": "Soy Stiven otra vez. ¿Qué ventajas tiene ejecutar un LLM de forma local con Ollama en vez de usar una API en la nube? ¿Y qué comando se usa para descargar el modelo Llama 3?",
+    "mb": 0.31,
+    "transcripciones": {
+      "whisper-large-v3-turbo": {
+        "texto": "soy steven otra vez qué ventajas tiene ejecutar un l l m de forma local con oyama en vez de usar una api en la nube y qué comando se usa para descargar el modelo llama 3",
+        "duracion_s": 19.712,
+        "segundos_api": 0.49,
+        "wer": 0.143,
+        "errores": 5,
+        "palabras": 35
+      },
+      "whisper-large-v3": {
+        "texto": "Soy Steven otra vez, ¿Qué ventajas tiene ejecutar un LLM de forma local con Oyama en vez de usar una API en la nube? ¿Y qué comando se usa para descargar el modelo Yama 3?",
+        "duracion_s": 19.712,
+        "segundos_api": 0.55,
+        "wer": 0.086,
+        "errores": 3,
+        "palabras": 35
+      },
+      "whisper-large-v3-turbo+vocabulario": {
+        "texto": "Soy Steven otra vez. ¿Qué ventajas tiene ejecutar un LLM de forma local con Ollama en vez de usar una API en la nube? ¿Y qué comando se usa para descargar el modelo YAMA 3?",
+        "duracion_s": 19.712,
+        "segundos_api": 0.82,
+        "wer": 0.057,
+        "errores": 2,
+        "palabras": 35
+      }
+    }
+  },
+  {
+    "audio": "audio4_daniel.m4a",
+    "clave": "audio4",
+    "hablante": "Daniel Rodriguez",
+    "condicion": "sin ruido",
+    "texto": "Soy Daniel. Según la ingeniería de prompts, ¿cuáles son los componentes de un prompt correcto? Por ejemplo, ¿qué diferencia hay entre la tarea, el formato y el contexto, y para qué sirven las restricciones?",
+    "mb": 0.29,
+    "transcripciones": {
+      "whisper-large-v3-turbo": {
+        "texto": "Soy Daniel, según la ingeniería de Prompt, ¿cuáles son los componentes de un prompt correcto? Por ejemplo, ¿qué diferencia hay entre la tarea, el formato y el contexto y para qué sirven las restricciones?",
+        "duracion_s": 18.432,
+        "segundos_api": 0.53,
+        "wer": 0.029,
+        "errores": 1,
+        "palabras": 34
+      },
+      "whisper-large-v3": {
+        "texto": "Soy Daniel. Según la ingeniería de prompts, ¿cuáles son los componentes de un prompt correcto? Por ejemplo, ¿qué diferencia hay entre la tarea, el formato y el contexto y para qué sirven las restricciones?",
+        "duracion_s": 18.432,
+        "segundos_api": 0.59,
+        "wer": 0.0,
+        "errores": 0,
+        "palabras": 34
+      },
+      "whisper-large-v3-turbo+vocabulario": {
+        "texto": "Soy Daniel. Según la ingeniería de prompts, ¿cuáles son los componentes de un prompt correcto? Por ejemplo, ¿qué diferencia hay entre la tarea, el formato y el contexto y para qué sirven las restricciones?",
+        "duracion_s": 18.432,
+        "segundos_api": 1.12,
+        "wer": 0.0,
+        "errores": 0,
+        "palabras": 34
+      }
+    }
+  },
+  {
+    "audio": "audio5_stiven.m4a",
+    "clave": "audio5",
+    "hablante": "Stiven Rodriguez",
+    "condicion": "sin ruido",
+    "texto": "Última pregunta. ¿Cómo instalo la extensión pgvector en PostgreSQL para guardar los embeddings de mi proyecto?",
+    "mb": 0.21,
+    "transcripciones": {
+      "whisper-large-v3-turbo": {
+        "texto": "Última pregunta, ¿Cómo instalo la extensión pg vector en PostgreSQL para guardar los embeddings de mi proyecto?",
+        "duracion_s": 13.312,
+        "segundos_api": 0.49,
+        "wer": 0.125,
+        "errores": 2,
+        "palabras": 16
+      },
+      "whisper-large-v3": {
+        "texto": "Última pregunta, ¿cómo instalo la extensión PG Vector en PostgreSQL para guardar los embeddings de mi proyecto?",
+        "duracion_s": 13.312,
+        "segundos_api": 0.7,
+        "wer": 0.125,
+        "errores": 2,
+        "palabras": 16
+      },
+      "whisper-large-v3-turbo+vocabulario": {
+        "texto": "Última pregunta. ¿Cómo instalo la extensión pgvector en PostgreSQL para guardar los embeddings de mi proyecto?",
+        "duracion_s": 13.312,
+        "segundos_api": 0.4,
+        "wer": 0.0,
+        "errores": 0,
+        "palabras": 16
+      }
+    }
+  }
+]

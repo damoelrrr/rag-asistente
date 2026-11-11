@@ -1,0 +1,33 @@
+# Ejecución: 2026-11-11 12:03
+
+==============================================================================
+1.4 ERRORES PROVOCADOS
+==============================================================================
+
+--- Caso: mas_imagenes ---
+Qué se hizo: Se envían 4 imágenes en un solo mensaje (el límite documentado es 3).
+La API devolvió un error → BadRequestError (HTTP 400)
+Mensaje: Too many images provided.  This model supports up to 3 images
+
+--- Caso: modelo_sin_vision ---
+Qué se hizo: Se envía una imagen a openai/gpt-oss-120b, un modelo de solo texto.
+La API devolvió un error → BadRequestError (HTTP 400)
+Mensaje: messages[0].content must be a string
+
+--- Caso: tipo_mal_declarado ---
+Qué se hizo: Se envía un PNG declarando el tipo 'text/plain' en la data URL.
+La API NO devolvió error. Respuesta: Esta diapositiva, titulada **¿CÓMO SE CALCULA?**, presenta la fórmula estándar para calcular el score **TF-IDF** (Term Frequency - Inverse Document Frequency) en procesamiento de lenguaje natural.
+
+La fórmula mostrada es:
+
+> **IDF * [ TF * (k₁ + 1) / (TF + k₁ * (1 - b + b * (document length / average document length))) ]**
+
+Debajo de la fórmula, se define cada componente:
+
+- **IDF**: Frecuencia de
+
+--- Caso: imagen_muy_grande ---
+Qué se hizo: Se envía un PNG de ruido de 2900x2900 (~25 MB; ~34 MB en base64), por encima de 20 MB por solicitud.
+La API devolvió un error → APIStatusError (HTTP 413)
+Mensaje: Request Entity Too Large
+Código: request_too_large
