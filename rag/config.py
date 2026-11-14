@@ -40,6 +40,9 @@ class Settings:
     llm_model: str = field(default_factory=lambda: _env("LLM_MODEL", ""))
     temperature: float = field(default_factory=lambda: float(_env("TEMPERATURE", "0.1")))
     max_history_messages: int = field(default_factory=lambda: int(_env("MAX_HISTORY_MESSAGES", "6")))
+    # --- Agente (Avance 3) ---
+    agent_max_iterations: int = field(default_factory=lambda: int(_env("AGENT_MAX_ITERATIONS", "5")))
+    agent_log_path: Path = field(default_factory=lambda: ROOT / _env("AGENT_LOG_PATH", "logs/agent_usage.jsonl"))
     # --- LLM juez (Ragas). Por defecto el mismo que el de generación ---
     judge_provider: str = field(default_factory=lambda: _env("JUDGE_PROVIDER", ""))
     judge_model: str = field(default_factory=lambda: _env("JUDGE_MODEL", ""))

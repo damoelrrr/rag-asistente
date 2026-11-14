@@ -1,4 +1,4 @@
-# Ejecución: 2026-11-11 12:01
+# Ejecución: 2026-11-11 14:55
 
 ==============================================================================
 1.1 PREGUNTA SOBRE UNA IMAGEN   (modelo: qwen/qwen3.8-27b)
@@ -6,7 +6,7 @@
 Imagen:   06_survey_tabla3_metricas.png  (70 KB, enviada en base64)
 Pregunta: Esta es la Tabla III del survey 'Retrieval-Augmented Generation for Large Language Models'. Según la tabla, ¿qué métricas sirven para evaluar el aspecto 'Context Relevance' y cuáles sirven para 'Faithfulness'? Responde en español con dos listas y no agregues métricas que no estén marcadas.
 
-Respuesta del modelo (1.1 s, tokens de entrada: 848):
+Respuesta del modelo (1.9 s, tokens de entrada: 848):
 Basado en la Tabla III proporcionada, aquí están las métricas para cada aspecto:
 
 **Métricas para 'Context Relevance':**

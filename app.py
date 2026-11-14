@@ -1,4 +1,4 @@
-"""Interfaz de chat (Streamlit) del Tutor Académico RAG.
+"""Interfaz de chat (Streamlit) del Tutor Académico: agente con herramientas (Avance 3).
 
 Ejecutar en local:  streamlit run app.py
 """
@@ -29,16 +29,17 @@ st.set_page_config(
 
 # Los secrets de la nube se pasan a variables de entorno (las claves NUNCA van en el repositorio)
 try:
-    for _k in ("GROQ_API_KEY", "GEMINI_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "LLM_PROVIDER", "LLM_MODEL", "LLM_BASE_URL", "TOP_K", "MAX_DISTANCE"):
+    for _k in ("GROQ_API_KEY", "GEMINI_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "LLM_PROVIDER", "LLM_MODEL", "LLM_BASE_URL", "TOP_K", "MAX_DISTANCE", "TAVILY_API_KEY", "AGENT_MAX_ITERATIONS"):
         if _k in st.secrets:
             os.environ[_k] = str(st.secrets[_k]).strip()  # los secrets mandan sobre valores previos
 except Exception:  # sin secrets.toml en local: se usa .env
     pass
 
+from rag.agent import Agent  # noqa: E402
 from rag.config import Settings  # noqa: E402
+from rag.tools import DOMINIOS_PERMITIDOS, MAX_CHARS_FRAGMENTO, MAX_FRAGMENTOS, MAX_RESULTADOS_WEB  # noqa: E402
 from rag.catalog import DOCUMENT_TITLES  # noqa: E402
 from rag.pipeline import RAGPipeline  # noqa: E402
-from rag.prompts import REFUSAL  # noqa: E402
 
 # La presentación vive aparte para mantener el flujo RAG independiente del diseño.
 st.markdown(
@@ -111,7 +112,7 @@ def render_quiz(d: dict) -> None:
 def sources_html(sources: list[dict]) -> str:
     out = []
     for s in sources:
-        where = s["source"] + (f" · pág. {s['page']}" if s.get("page") else "") + f" · fragmento {s['chunk_index']}"
+        where = s["source"] + (f" · pág. {s['page']}" if s.get("page") else f" · fragmento {s['chunk_index']}")
         cls = "src cited" if s["cited"] else "src"
         tag = " · citada en la respuesta" if s["cited"] else ""
         similarity = f"{s['similarity']:.0%} similitud" if s["similarity"] is not None else "Documento indexado"
@@ -131,6 +132,16 @@ def notice_html(text: str) -> str:
     )
 
 
+def tools_html(tools: list[dict]) -> str:
+    out = []
+    for c in tools:
+        args = ", ".join(f"{k}={json.dumps(v, ensure_ascii=False)}" for k, v in c["args"].items()) or "sin argumentos"
+        flag = " · bloqueada por política" if c.get("bloqueada") else ""
+        out.append(f"<div class=\"src\"><div class=\"meta\"><span class=\"badge\">{html.escape(c['name'])}</span>"
+                   f"<span>{html.escape(args)}</span></div><div class=\"txt\">{html.escape(c['resumen'])}{flag}</div></div>")
+    return "".join(out)
+
+
 def render_message(m: dict) -> None:
     if m["role"] == "assistant" and m.get("refused"):
         st.markdown(notice_html(m["content"]), unsafe_allow_html=True)
@@ -140,11 +151,25 @@ def render_message(m: dict) -> None:
             render_quiz(quiz)
         else:
             st.markdown(m["content"])
+    if m["role"] != "assistant":
+        return
+    if m.get("tools") is not None:
+        label = f"Herramientas usadas · {len(m['tools'])}" if m["tools"] else "Herramientas usadas · ninguna"
+        with st.expander(label):
+            if m["tools"]:
+                st.markdown(tools_html(m["tools"]), unsafe_allow_html=True)
+            else:
+                st.caption("El agente respondió directamente, sin consultar ninguna herramienta.")
+            if m.get("llm_calls") is not None:
+                st.caption(f"Llamadas al LLM: {m['llm_calls']} · {m.get('seconds', 0):.1f} s")
     if m.get("sources"):
-        with st.expander(f"Fuentes consultadas · {len(m['sources'])}"):
-            if m.get("standalone") and m["standalone"] != m.get("question"):
-                st.caption(f"🔎 Búsqueda realizada: «{m['standalone']}»")
+        with st.expander(f"Fuentes de la base de conocimientos · {len(m['sources'])}"):
             st.markdown(sources_html(m["sources"]), unsafe_allow_html=True)
+    if m.get("web_sources"):
+        with st.expander(f"Fuentes web · {len(m['web_sources'])}"):
+            for w in m["web_sources"]:
+                st.markdown(f"**[{w['title']}]({w['url']})** · origen: web")
+                st.caption(w["excerpt"])
 
 
 # ------------------------------------------------------------------ Estado ----
@@ -167,11 +192,13 @@ _env = {"anthropic": "ANTHROPIC_API_KEY", "groq": "GROQ_API_KEY", "gemini": "GEM
 _key = os.getenv(_env, "")
 _rag_dir = Path(__file__).parent / "rag"
 _retrieval_signature = hashlib.sha256(b"".join(
-    (_rag_dir / name).read_bytes() for name in ("pipeline.py", "vectorstore.py", "retrieval.py", "prompts.py", "catalog.py")
+    (_rag_dir / name).read_bytes() for name in ("pipeline.py", "vectorstore.py", "retrieval.py", "prompts.py", "catalog.py",
+                                                "agent.py", "agent_prompts.py", "tools.py")
 )).hexdigest()[:12]
 pipe, n_chunks = load_pipeline(
     f"{_provider}|{settings.llm_model}|{hashlib.sha256(_key.encode()).hexdigest()[:12]}", _retrieval_signature,
 )
+agent = Agent(pipe, settings)  # sin estado entre preguntas: el historial lo trae la interfaz
 
 # ------------------------------------------------------------------ Espacio de estudio ----
 if "view" not in st.session_state:
@@ -204,12 +231,14 @@ with st.sidebar:
     # El espacio central de la barra queda disponible para el futuro historial de chats.
     with st.container(key="sidebar_footer"):
         with st.expander("Ajustes de búsqueda", icon=":material/tune:"):
-            top_k = st.slider("Fragmentos por consulta", 1, 8, min(8, max(1, settings.top_k)),
-                              help="Un fragmento (chunk) es una porción del documento. Este es el máximo que recibe el modelo después de ordenar y filtrar los candidatos; pueden llegar menos si no hay suficiente contexto relevante.")
             st.caption(f"{len(documents)} documentos · {n_chunks} fragmentos indexados")
             st.caption(f"Fragmentos de hasta {settings.chunk_size} caracteres · solapamiento de hasta {settings.chunk_overlap}")
             st.caption(f"Embeddings locales · {settings.embedding_model.split('/')[-1]}")
             st.caption("Al modelo solo se envían los fragmentos recuperados para responder tu pregunta.")
+            st.caption(f"Límites del agente (fijados en el código): {MAX_FRAGMENTOS} fragmentos de hasta {MAX_CHARS_FRAGMENTO} "
+                       f"caracteres por búsqueda · {settings.agent_max_iterations} iteraciones por pregunta.")
+            st.caption(f"Búsqueda web solo si la base no responde: máx. {MAX_RESULTADOS_WEB} resultados en "
+                       f"{len(DOMINIOS_PERMITIDOS)} sitios permitidos ({', '.join(DOMINIOS_PERMITIDOS)}).")
         st.markdown(
             f'<div class="profile"><div class="profile-avatar">E</div>'
             '<div><div class="profile-name">Estudiante</div><div class="profile-subtitle">La curiosidad es tu superpoder</div></div>'
@@ -300,29 +329,21 @@ if prompt:
 
     with st.chat_message("assistant", avatar=":material/auto_awesome:"):
         try:
-            with st.spinner("Buscando en la base de conocimientos…"):
-                prep = pipe.prepare(prompt, history, top_k)
-            if prep.direct_answer is not None:
-                text = prep.direct_answer
-                st.markdown(text)
-            elif prep.messages is None:  # nada pertinente: se rechaza sin gastar una llamada al LLM
-                text = REFUSAL
-                st.markdown(notice_html(text), unsafe_allow_html=True)
+            with st.spinner("El agente está decidiendo qué herramientas usar…"):
+                res = agent.run(prompt, history)
+            if res.refused:  # ni la base ni los sitios permitidos tienen la respuesta
+                st.markdown(notice_html(res.text), unsafe_allow_html=True)
             else:
-                text = st.write_stream(pipe.stream(prep))
-            ans = pipe.finish(prep, text)
+                st.markdown(res.text)
         except Exception as e:  # clave inválida, red, límites de uso…
             st.error(f"No pude generar la respuesta ({type(e).__name__}): {e}")
             st.session_state.messages.pop()
             st.stop()
 
-        sources = [
-            {"n": h.n, "source": h.source, "page": h.page, "chunk_index": h.chunk_index,
-             "similarity": h.similarity, "text": h.text, "cited": h.n in ans.cited}
-            for h in ans.hits
-        ]
-        msg = {"role": "assistant", "content": ans.text, "sources": sources, "refused": ans.refused,
-               "standalone": ans.standalone, "question": prompt}
+        sources = [{**src, "cited": src["source"] in res.text} for src in res.base_sources]
+        msg = {"role": "assistant", "content": res.text, "sources": sources, "web_sources": res.web_sources,
+               "tools": res.tool_calls, "llm_calls": res.llm_calls, "seconds": res.seconds,
+               "refused": res.refused, "question": prompt}
         st.session_state.messages.append(msg)
-    # Actualiza también la cabecera y la conversación de la barra lateral tras el streaming.
+    # Actualiza también la cabecera y la conversación de la barra lateral.
     st.rerun()

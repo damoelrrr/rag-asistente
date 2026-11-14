@@ -49,16 +49,16 @@
       ]
     }
   },
-  "segundos": 1.06,
+  "segundos": 1.88,
   "uso": {
     "completion_tokens": 104,
     "prompt_tokens": 848,
     "total_tokens": 952,
-    "completion_time": 0.20605836,
+    "completion_time": 0.216433865,
     "completion_tokens_details": null,
-    "prompt_time": 0.061429736,
+    "prompt_time": 0.067855247,
     "prompt_tokens_details": null,
-    "queue_time": 0.480324227,
-    "total_time": 0.267488096
+    "queue_time": 0.179810884,
+    "total_time": 0.284289112
   }
 }
