@@ -18,3 +18,5 @@ langchain-community<0.4  # ragas 0.2 importa módulos retirados en 0.4
 datasets>=3.0
 reportlab>=4.0
 pysqlite3-binary; sys_platform == "linux"
+requests>=2.31
+tabulate>=0.9
