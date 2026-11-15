@@ -27,6 +27,8 @@ from rag.pipeline import RAGPipeline  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "results"
+sys.path.insert(0, str(HERE))
+from eval_utils import CountingLLM, checkpointed, with_quota_retry  # noqa: E402
 
 
 def main():
@@ -56,24 +58,34 @@ def main():
     pipe = RAGPipeline(s)
     print(f"Índice: {pipe.ensure_index()} chunks | chunk={s.chunk_size} overlap={s.chunk_overlap} top_k={s.top_k}")
 
-    # 1) Ejecutar el pipeline real sobre cada pregunta (sin historial)
-    rows = []
-    for q in questions:
-        ans = pipe.answer(q["question"])
-        rows.append(
-            {
-                "id": q["id"],
-                "answerable": q["answerable"],
-                "user_input": q["question"],
-                "reference": q["ground_truth"],
-                "response": ans.text,
-                "refused": ans.refused,
-                "retrieved_contexts": [h.text for h in ans.raw_hits],
-                "sources": [f"{h.source}#{h.chunk_index}" for h in ans.raw_hits],
-                "seconds": round(ans.seconds, 2),
-            }
-        )
-        print(f"  {q['id']} {'REHUSÓ' if ans.refused else 'respondió'} | {q['question'][:60]}")
+    # 1) Ejecutar el pipeline real sobre cada pregunta (sin historial). Se cuentan llamadas y tokens del LLM
+    #    (para la comparación de costo del Avance 3) y cada pregunta se guarda al terminar.
+    counter = CountingLLM(pipe.llm)
+    pipe._llm = counter
+    OUT.mkdir(exist_ok=True)
+
+    def run_one(q):
+        def once():
+            counter.reset()
+            return pipe.answer(q["question"])
+        ans = with_quota_retry(once)
+        print(f"  {q['id']} {'REHUSÓ' if ans.refused else 'respondió'} | LLM {counter.calls} | {q['question'][:60]}", flush=True)
+        return {
+            "id": q["id"],
+            "answerable": q["answerable"],
+            "user_input": q["question"],
+            "reference": q["ground_truth"],
+            "response": ans.text,
+            "refused": ans.refused,
+            "retrieved_contexts": [h.text for h in ans.raw_hits],
+            "sources": [f"{h.source}#{h.chunk_index}" for h in ans.raw_hits],
+            "seconds": round(ans.seconds, 2),
+            "llm_calls": counter.calls,
+            "input_tokens": counter.input_tokens,
+            "output_tokens": counter.output_tokens,
+        }
+
+    rows = checkpointed(OUT / f"_ckpt_{a.tag}_pipeline.jsonl", questions, run_one)
     df = pd.DataFrame(rows)
 
     # 2) Control de alucinaciones (preguntas fuera del corpus)

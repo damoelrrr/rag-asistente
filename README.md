@@ -6,12 +6,57 @@ En las consultas normales, primero explica la respuesta con citas del material r
 
 Las preguntas sobre los temas disponibles o las fuentes del tutor se responden directamente con el catálogo completo del índice, antes de reescribir la consulta o llamar al LLM. Los ejemplos dentro de un PDF no se presentan como temas adicionales del curso.
 
-> **URL pública de la aplicación:** `https://TU-APP.streamlit.app`  ← *(reemplazar tras el despliegue)*
+> **URL pública de la aplicación:** <https://rag-asistente-bdqqdfqfnzl6bymy65mtm2.streamlit.app/>
 > **Repositorio:** <https://github.com/damoelrrr/rag-asistente>
 
 **Privacidad:** el sistema conserva el control de la base de conocimientos y del índice vectorial. Los documentos no se entregan a servicios de entrenamiento; los embeddings se calculan **localmente** y al LLM solo se le envían los fragmentos recuperados para cada consulta, nunca el corpus completo.
 
 ---
+
+## Avance 3: agente con herramientas
+
+El RAG del Avance 2 ahora es un **agente**: el LLM decide si necesita una herramienta (tool calling), el programa la ejecuta y le devuelve el resultado. Se reutilizan la ingesta, el chunking, el índice Chroma + BM25, el conjunto de evaluación y la interfaz.
+
+![Arquitectura del agente](docs/agent_flow.png)
+
+### Tools y límites
+
+Todos los límites están escritos en el código ([`rag/tools.py`](rag/tools.py)), no en el prompt: el LLM no puede cambiarlos.
+
+| Tool | Tipo | Qué hace y cuándo se usa | Límites en el código |
+|---|---|---|---|
+| `buscar_en_base(consulta)` | búsqueda | Recupera fragmentos de los documentos del curso (embeddings + BM25). Se usa para toda pregunta de contenido; una llamada por tema en preguntas compuestas. | Máx. **4 fragmentos** por llamada, **700 caracteres** por fragmento, consulta ≤ 300 caracteres. Cada fragmento lleva documento y página. |
+| `generar_referencia_apa(documento)` | tarea del dominio | Devuelve la referencia APA 7 exacta de un documento de la base a partir de sus metadatos (autores, año, título). El LLM extrae de la pregunta el título, archivo o autor. | Solo documentos de la base; si no lo encuentra, devuelve `SIN_RESULTADOS` con la lista de documentos. Nunca genera la referencia "de memoria". |
+| `listar_documentos()` | búsqueda | Catálogo de los documentos indexados. Se usa cuando preguntan qué temas o fuentes tiene el tutor. | Máx. 30 documentos. |
+| `buscar_en_web(consulta)` | web | Busca en Tavily, solo en sitios permitidos, cuando la base no tiene la respuesta. | Máx. **3 resultados** (título, URL y extracto ≤ 300 caracteres, origen `web`); consulta ≤ 200 caracteres; dominios fijos; **bloqueada si antes no se llamó a `buscar_en_base`**. |
+
+**Bucle** ([`rag/agent.py`](rag/agent.py)): bucle manual con `bind_tools` de LangChain. Máximo **5 iteraciones** por pregunta (`AGENT_MAX_ITERATIONS`); al llegar al límite se obliga al LLM a responder sin más tools. Máximo 3 tools por vuelta. Una tool desconocida o con argumentos inválidos devuelve un error al LLM en lugar de romper la app.
+
+**Prompt** ([`rag/agent_prompts.py`](rag/agent_prompts.py)): ya no lleva el contexto; indica cuándo usar cada tool (y cuándo ninguna: saludos y preguntas ajenas al curso), obliga a responder solo con lo que devuelven las tools, a citar `(Fuente: archivo, pág. N)` o `[web: URL]` y mantiene la respuesta exacta de rechazo. Tres ejemplos few-shot muestran un saludo sin tools, una búsqueda en la base y el paso base → web. Si el modelo cita con la etiqueta interna (`[B1]`, `[W1]`), el código la reemplaza por la cita con su origen.
+
+**Registro de uso** ([`rag/agent_log.py`](rag/agent_log.py)): una línea JSON por pregunta en `logs/agent_usage.jsonl` con las tools llamadas, sus argumentos, el número de llamadas al LLM, las iteraciones, los tokens y el tiempo.
+
+### Política de búsqueda web
+
+- **Cuándo:** solo si `buscar_en_base` ya se consultó y no tiene la respuesta, y la pregunta trata de información pública o actual del dominio del curso (documentación oficial, una definición general, una versión reciente). La regla está en el docstring de la tool y en el System Prompt, y el orden "primero la base" se hace cumplir en el código.
+- **Qué sale del sistema:** solo la consulta (≤ 200 caracteres). Nunca fragmentos de la base.
+- **Respuesta:** separa "Según la base de conocimientos:" de "Según la web:" y marca cada dato web con `[web: URL]`. La interfaz muestra las fuentes web aparte.
+
+| Sitio permitido | Por qué |
+|---|---|
+| `arxiv.org` | Artículos científicos originales; el survey de RAG del corpus viene de arXiv. |
+| `ollama.com`, `docs.ollama.com` | Sitio y documentación oficial de Ollama (LLMs locales, tema del curso). |
+| `docs.langchain.com`, `python.langchain.com`, `langchain-ai.github.io` | Documentación oficial de LangChain/LangGraph, el framework del agente. |
+| `docs.trychroma.com` | Documentación oficial de Chroma, el índice vectorial del proyecto. |
+| `scikit-learn.org` | Documentación oficial de TF-IDF y recuperación de información. |
+
+La lista se envía fija a Tavily (`include_domains`) y además se vuelve a filtrar al recibir los resultados. El LLM no puede cambiarla. Fuera de estos sitios (o si no hay resultados), el agente responde con el texto de rechazo.
+
+### Evaluación del agente
+
+- **Casos de comportamiento:** 8/8 cumplen (`eval/results/behavior_results.md`): saludo sin tools, pregunta compuesta con dos búsquedas, 2 tareas APA, búsqueda web solo en sitios permitidos, pregunta respondida por la base sin web, instrucción maliciosa rechazada y pregunta fuera de alcance con el texto de rechazo exacto.
+- **Ragas:** pipeline fijo actual (gpt-oss-120b): faithfulness 0.77, answer_relevancy 0.45, context_precision 0.61, context_recall 0.67. La corrida del agente agotó la cuota diaria gratuita de Groq antes de puntuarse; `eval/run_agent_eval.py` guarda el avance por pregunta y retoma solo.
+- **Costo (mismas preguntas, mismo LLM):** el agente hace 2 llamadas al LLM por pregunta frente a 1 del pipeline y usa ~2× tokens de entrada (`eval/results/cost_comparison.csv`).
 
 ## 1. Flujo RAG implementado
 
@@ -53,7 +98,7 @@ Requisitos: Python 3.10–3.12 y una clave de API (Groq gratuita en <https://con
 python -m venv .venv
 # Windows:  .venv\Scripts\activate        macOS/Linux:  source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env        # Windows: copy .env.example .env   → pega tu clave en .env
+# crea un archivo .env con: LLM_PROVIDER=groq, GROQ_API_KEY=..., LLM_MODEL=openai/gpt-oss-120b y TAVILY_API_KEY=...
 python scripts/build_index.py      # opcional: la app lo construye sola si no existe
 streamlit run app.py
 ```
@@ -110,6 +155,7 @@ Archivos: `eval/results/summary_<tag>.json`, `detalle_<tag>.csv` (respuesta, fra
    LLM_PROVIDER = "groq"
    GROQ_API_KEY = "tu-clave"
    LLM_MODEL = "openai/gpt-oss-120b"
+   TAVILY_API_KEY = "tu-clave-de-tavily"   # búsqueda web del agente (Avance 3)
    ```
 4. **Deploy**. El primer arranque tarda unos minutos: instala dependencias, descarga el modelo de embeddings y construye el índice a partir de `data/corpus/`.
 5. Copia la URL pública y pégala arriba en este README.
@@ -118,22 +164,32 @@ Alternativas: Hugging Face Spaces (SDK Streamlit, secrets en *Settings → Varia
 
 ### PDF de entrega
 
-Con las capturas en `docs/screenshots/` (`01_…` a `06_…`) y los resultados de Ragas, se genera `docs/Entrega_Avance2.pdf`:
+**Avance 3.** `scripts/fill_avance3_docx.py` llena la plantilla oficial (`Avance3_plantilla_de_entrega.docx`) con los resultados de `eval/results/`, el registro `logs/agent_usage.jsonl`, el diagrama y las capturas `docs/screenshots/a3_*.png`, y genera `docs/Entrega_Avance3.docx` (y su PDF, exportado con Word):
 
 ```bash
-python scripts/build_deliverable_pdf.py --autor "Tu nombre" --curso "Tu curso" \
-    --url https://TU-APP.streamlit.app --repo https://github.com/damoelrrr/rag-asistente
+python scripts/make_agent_diagram.py          # docs/agent_flow.png
+python scripts/demo_tool_invoke.py            # prueba de la tool de búsqueda sin LLM (.invoke)
+python eval/run_behavior_cases.py             # casos de comportamiento
+python scripts/fill_avance3_docx.py           # docs/Entrega_Avance3.docx
 ```
+
+**Avance 2.** `scripts/build_deliverable_pdf.py` genera `docs/Entrega_Avance2.pdf` con las capturas `01_…` a `06_…`.
 
 ## 5. Estructura del repositorio
 
 ```
-app.py                   Interfaz de chat (Streamlit)
-rag/                     Pipeline: config, ingest, chunking, embeddings, vectorstore, prompts, llm, pipeline
+app.py                   Interfaz de chat (Streamlit) que usa el agente
+rag/                     Pipeline: config, ingest, chunking, embeddings, vectorstore, retrieval, prompts, llm, pipeline
+rag/agent.py             Bucle del agente (tool calling, límite de iteraciones)
+rag/tools.py             Tools y sus límites: buscar_en_base, generar_referencia_apa, listar_documentos, buscar_en_web
+rag/agent_prompts.py     System prompt y few-shot del agente
+rag/agent_log.py         Registro de uso de tools (logs/agent_usage.jsonl)
 data/corpus/             Documentos fuente (reemplázalos por los tuyos)
-eval/                    eval_questions.json, run_eval.py (Ragas), compare.py, results/
-scripts/                 build_index.py, build_deliverable_pdf.py
-docs/                    PDFs, diagrama y capturas (docs/screenshots/)
+eval/                    eval_questions.json, run_eval.py (pipeline fijo), run_agent_eval.py (agente + costo),
+                         behavior_cases.json + run_behavior_cases.py (casos de comportamiento), results/
+scripts/                 build_index.py, make_agent_diagram.py, demo_tool_invoke.py, fill_avance3_docx.py
+tests/                   Pruebas sin LLM ni red (tools, límites, política web, bucle)
+docs/                    PDFs de entrega, diagramas y capturas (docs/screenshots/)
 ```
 
 ## 6. Problemas frecuentes
@@ -142,13 +198,6 @@ docs/                    PDFs, diagrama y capturas (docs/screenshots/)
 - **Ragas falla con `n` / `strictness` en Anthropic:** ejecuta con `RAGAS_STRICTNESS=1` o usa `JUDGE_PROVIDER=openai`.
 - **Rechaza preguntas válidas:** sube `MAX_DISTANCE` (p. ej. 0.85). **Responde cosas fuera del corpus:** bájalo (p. ej. 0.6).
 - **Cambiaste `CHUNK_SIZE` o el modelo de embeddings:** cada combinación crea su propio índice en `data/index/`.
-> **URL pública de la aplicación:** https://rag-asistente-bdqqdfqfnzl6bymy65mtm2.streamlit.app/
-> **Repositorio:** [https://github.com/damoelrrr/rag-asistente](https://github.com/damoelrrr/rag-asistente)
-
-<!-- ↑ Sustituye en el README principal la línea que dice "https://TU-APP.streamlit.app ← (reemplazar tras el despliegue)". -->
-
-<!-- ↓ Pega esta sección al final del README principal, antes de "Problemas frecuentes" o al final. -->
-
 ## 7. Taller multimodal y audio
 
 El repositorio incluye también el taller de entrada multimodal y audio, sobre el mismo dominio del asistente

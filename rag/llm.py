@@ -24,10 +24,14 @@ def get_chat_model(settings: Settings, judge: bool = False, max_tokens: int = 70
         from langchain_groq import ChatGroq
 
         extra = {"reasoning_effort": "low"} if model.startswith("openai/gpt-oss") else {}
+        if model.startswith("qwen/"):  # sin razonamiento: Qwen en Groq limita a 1000 tokens de salida por minuto
+            extra = {"reasoning_effort": "none"}
+        # LLM_MAX_TOKENS permite bajar el tope para modelos con límite estricto de salida (p. ej. Qwen: 1000/min)
+        limit = int(os.getenv("LLM_MAX_TOKENS", "0")) if not judge else 0
         return ChatGroq(
             model=model,
             temperature=temperature,
-            max_tokens=max(max_tokens, 1500),
+            max_tokens=limit or max(max_tokens, 1500),
             groq_api_key=os.getenv("GROQ_API_KEY"),
             max_retries=8,  # el plan gratuito limita tokens por minuto (429): reintenta con espera
             **extra,

@@ -26,38 +26,19 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import pandas as pd  # noqa: E402
 
-from rag.agent import Agent, usage_of  # noqa: E402
+from rag.agent import Agent  # noqa: E402
 from rag.config import Settings  # noqa: E402
 from rag.embeddings import as_langchain_embeddings  # noqa: E402
 from rag.llm import get_chat_model  # noqa: E402
 from rag.pipeline import RAGPipeline  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+from eval_utils import CountingLLM, checkpointed, with_quota_retry  # noqa: E402
+
 ROOT = HERE.parent
 OUT = HERE / "results"
 METRICS = ["faithfulness", "answer_relevancy", "context_precision", "context_recall"]
-
-
-class CountingLLM:
-    """Envuelve el LLM del pipeline fijo para contar llamadas y tokens (el pipeline no los expone)."""
-
-    def __init__(self, llm):
-        self._llm = llm
-        self.reset()
-
-    def reset(self):
-        self.calls = self.input_tokens = self.output_tokens = 0
-
-    def invoke(self, *args, **kwargs):
-        reply = self._llm.invoke(*args, **kwargs)
-        self.calls += 1
-        tin, tout = usage_of(reply)
-        self.input_tokens += tin
-        self.output_tokens += tout
-        return reply
-
-    def __getattr__(self, name):
-        return getattr(self._llm, name)
 
 
 def run_ragas(pipe, s, in_scope):
@@ -107,33 +88,52 @@ def main():
     print(f"Índice: {pipe.ensure_index()} chunks | tools: máx. fragmentos y caracteres fijados en rag/tools.py")
     agent = Agent(pipe)
 
-    # 1) Agente
-    rows = []
-    for q in questions:
-        r = agent.run(q["question"])
-        rows.append({
+    OUT.mkdir(exist_ok=True)
+
+    # 1) Agente (cada pregunta se guarda al terminar: si Groq corta por cuota, se retoma)
+    def run_agent(q):
+        r = with_quota_retry(agent.run, q["question"])
+        row = {
             "id": q["id"], "answerable": q["answerable"], "user_input": q["question"], "reference": q["ground_truth"],
             "response": r.text, "refused": r.refused, "retrieved_contexts": r.contexts,
             "tools": "; ".join(f"{c['name']}({json.dumps(c['args'], ensure_ascii=False)})" for c in r.tool_calls) or "ninguna",
             "llm_calls": r.llm_calls, "input_tokens": r.input_tokens, "output_tokens": r.output_tokens,
             "seconds": round(r.seconds, 2), "limit_reached": r.limit_reached,
-        })
-        print(f"  {q['id']} {'REHUSÓ' if r.refused else 'respondió'} | LLM {r.llm_calls} | {rows[-1]['tools'][:70]}")
-    df = pd.DataFrame(rows)
+        }
+        print(f"  {q['id']} {'REHUSÓ' if r.refused else 'respondió'} | LLM {r.llm_calls} | {row['tools'][:70]}", flush=True)
+        return row
+
+    df = pd.DataFrame(checkpointed(OUT / f"_ckpt_{a.tag}_agente.jsonl", questions, run_agent))
     out_scope, in_scope = df[~df.answerable], df[df.answerable]
 
-    # 2) Costo: pipeline fijo vs agente, mismas preguntas
+    # 2) Costo: pipeline fijo vs agente, mismas preguntas.
+    #    Si la corrida de referencia (run_eval.py) ya registró llamadas y tokens, se usan esos datos y no se repite.
     cost = None
+    base_detail = OUT / f"detalle_{a.baseline}.csv"
+    base_ckpt = OUT / f"_ckpt_{a.baseline}_pipeline.jsonl"  # disponible antes de que termine el Ragas del pipeline
+    base_df = pd.read_csv(base_detail) if base_detail.exists() else None
+    if base_ckpt.exists() and (base_df is None or "llm_calls" not in base_df.columns):
+        rows_b = [json.loads(x) for x in base_ckpt.read_text(encoding="utf-8").splitlines()]
+        if len(rows_b) >= len(questions):
+            base_df = pd.DataFrame(rows_b)
     if not a.skip_cost:
-        counter = CountingLLM(pipe.llm)
-        pipe._llm = counter
-        prow = []
-        for q in questions:
-            counter.reset()
-            ans = pipe.answer(q["question"])
-            prow.append({"llm_calls": counter.calls, "input_tokens": counter.input_tokens,
-                         "output_tokens": counter.output_tokens, "seconds": ans.seconds})
-        pdf = pd.DataFrame(prow)
+        if base_df is not None and {"llm_calls", "input_tokens", "output_tokens"} <= set(base_df.columns):
+            print(f"Costo del pipeline tomado de {base_detail.name} (misma corrida que sus métricas de Ragas)")
+            pdf = base_df[["id", "llm_calls", "input_tokens", "output_tokens", "seconds"]]
+        else:
+            counter = CountingLLM(pipe.llm)
+            pipe._llm = counter
+
+            def run_pipeline(q):
+                def once():
+                    counter.reset()
+                    return pipe.answer(q["question"])
+                ans = with_quota_retry(once)
+                print(f"  costo pipeline {q['id']}: LLM {counter.calls} | {ans.seconds:.1f} s", flush=True)
+                return {"id": q["id"], "llm_calls": counter.calls, "input_tokens": counter.input_tokens,
+                        "output_tokens": counter.output_tokens, "seconds": ans.seconds}
+
+            pdf = pd.DataFrame(checkpointed(OUT / f"_ckpt_{a.tag}_pipeline_costo.jsonl", questions, run_pipeline))
         cost = pd.DataFrame({
             "métrica": ["llamadas al LLM (promedio)", "tokens de entrada (promedio)", "tokens de salida (promedio)",
                         "tiempo de respuesta en s (promedio)"],

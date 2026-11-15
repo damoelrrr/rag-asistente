@@ -6,3 +6,6 @@ __pycache__/
 data/index/
 .streamlit/secrets.toml
 .DS_Store
+eval/results/_ckpt_*
+logs/*.log
+logs/demo_invoke.txt

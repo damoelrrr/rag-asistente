@@ -1,0 +1,5 @@
+﻿métrica,pipeline fijo,agente
+llamadas al LLM (promedio),1.0,2.0
+tokens de entrada (promedio),2755.5,5655.5
+tokens de salida (promedio),80.5,189.5
+tiempo de respuesta en s (promedio),16.57,65.48

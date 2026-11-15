@@ -11,6 +11,7 @@ Garantías que viven en el código (no en el prompt):
 """
 from __future__ import annotations
 
+import re
 import time
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
@@ -53,6 +54,20 @@ def usage_of(message) -> tuple[int, int]:
         return int(meta.get("input_tokens", 0)), int(meta.get("output_tokens", 0))
     usage = (getattr(message, "response_metadata", None) or {}).get("token_usage", {})
     return int(usage.get("prompt_tokens", 0)), int(usage.get("completion_tokens", 0))
+
+
+def resolve_citation_labels(text: str, base_sources: list[dict], web_sources: list[dict]) -> str:
+    """Si el LLM citó con la etiqueta interna ([B1], [W2]), la cambia por la cita con origen.
+
+    Así la marca de origen -(Fuente: archivo, pág. N) o [web: URL]- queda garantizada por el código.
+    """
+    cites = {}
+    for s in base_sources:
+        where = f"pág. {s['page']}" if s.get("page") else f"fragmento {s.get('chunk_index')}"
+        cites[s["n"]] = f"(Fuente: {s['source']}, {where})"
+    for s in web_sources:
+        cites[s["n"]] = f"[web: {s['url']}]"
+    return re.sub(r"\[([BW]\d+)\]", lambda m: cites.get(m.group(1), m.group(0)), text)
 
 
 def _is_bad_tool_call(exc: Exception) -> bool:
@@ -115,8 +130,10 @@ class Agent:
             final = call(llm, messages)
 
         text = text_of(final.content).strip() if final is not None else ""
-        res.text = text or REFUSAL
-        res.refused = is_refusal(res.text)
+        res.text = resolve_citation_labels(text, state.base_sources, state.web_sources) or REFUSAL
+        # Una respuesta que cita alguna fuente no es un rechazo, aunque diga que una parte no está en la base.
+        cites_source = "(Fuente:" in res.text or "[web:" in res.text
+        res.refused = is_refusal(res.text) and not cites_source
         res.tool_calls = state.calls
         res.base_sources = state.base_sources
         res.web_sources = state.web_sources

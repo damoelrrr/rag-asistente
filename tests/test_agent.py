@@ -191,3 +191,22 @@ def test_respuesta_vacia_se_convierte_en_refusal(settings):
     agent, _ = make_agent(settings, [ai("")])
     r = agent.run("hola")
     assert r.refused
+
+
+def test_etiquetas_internas_se_convierten_en_citas_con_origen():
+    from rag.agent import resolve_citation_labels
+    base = [{"n": "B1", "source": "3 BM25_Score.pdf", "page": 4, "chunk_index": 2}]
+    web = [{"n": "W1", "url": "https://docs.langchain.com/oss/python/langgraph/overview"}]
+    out = resolve_citation_labels("BM25 satura el TF [B1]. LangGraph orquesta agentes [W1]. Otro [W9].", base, web)
+    assert "(Fuente: 3 BM25_Score.pdf, pág. 4)" in out
+    assert "[web: https://docs.langchain.com/oss/python/langgraph/overview]" in out
+    assert "[W9]" in out  # una etiqueta que no existe no se inventa
+
+
+def test_respuesta_web_que_cita_no_es_rechazo(settings):
+    llm = FakeLLM([ai("Según la base de conocimientos: no encontré información sobre LangGraph en los documentos del curso.\n\n"
+                      "Según la web: es un framework de orquestación [web: https://docs.langchain.com/x].")])
+    pipe = FakePipe(settings)
+    pipe.llm = llm
+    res = Agent(pipe, settings).run("¿Qué es LangGraph?", log=False)
+    assert not res.refused
